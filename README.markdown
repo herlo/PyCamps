@@ -29,13 +29,13 @@ Commands
 
 All actions use the 'camp' command with specified arguments passed to perform a particular action:
 
-> pycamp
-> >  init --desc "mix master landing pages"  # camp_id returned on successful init
-> >  rm --id <camp_id>  # remove camp_id
-> >  refresh --db --web --conf --all  # refreshes the database (--db), the web docroot (--web), the configurations (--conf) or all (--all)
-> >  add <file_list>  # adds the list of files ready to be sent to qa
-> >  commit [-m <message] # creates an entry with a list of files to be sent to qa
-> >  push # pushes all commits to qa server
+    pycamp
+        init --desc "mix master landing pages"  # camp_id returned on successful init
+        rm --id <camp_id>  # remove camp_id
+        refresh --db --web --conf --all  # refreshes the database (--db), the web docroot (--web), the configurations (--conf) or all (--all)
+        add <file_list>  # adds the list of files ready to be sent to qa
+        commit [-m <message] # creates an entry with a list of files to be sent to qa
+        push # pushes all commits to qa server
 
 Git Repository
 --------------
@@ -44,8 +44,8 @@ A git repository provides functionality to enable campers to build in their own 
 
 The layout of the git repository is simple, yet efficient.
 
-> origin/
-> > master # original clone, what is currently live
-> > campX # branched from master for camp to use
+    origin/
+        master # original clone, what is currently live
+        campX # branched from master for camp to use
 
 A post-receive-hook ensures the camp doesn't exist on a qa server, then pushes camp to qa camp for testing.
