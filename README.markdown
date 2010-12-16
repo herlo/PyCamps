@@ -32,7 +32,7 @@ All actions use the 'camp' command with specified arguments passed to perform a 
     pycamp
         init --desc "mix master landing pages"  # camp_id returned on successful init
         rm --id <camp_id>  # remove camp_id
-        refresh --db --web --conf --all  # refreshes the database (--db), the web docroot (--web), the configurations (--conf) or all (--all)
+        refresh --db --web --conf --all  # refresh the database, the web root, the configs, or all (--all)
         add <file_list>  # adds the list of files ready to be sent to qa
         commit [-m <message] # creates an entry with a list of files to be sent to qa
         push # pushes all commits to qa server
