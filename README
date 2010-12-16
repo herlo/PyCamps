@@ -1,8 +1,10 @@
-## PyCamps ##
+PyCamps
+-------
 
 PyCamps is inspired by the Perl DevCamps created by EndPoint. The idea is simply to make it easy for developers to have their own little environments to build web applications. This PyCamps tool is built to manage PHP/MySQL based applications, like CakePHP, Magento and Wordpress.   As with DevCamps, this tool could easily be adapted to accomodate other web development configurations, like Python, Perl with Postgresql or some other database.
 
-### PyCamps Structure ###
+PyCamps Structure
+-----------------
 
 The camp structure will look something like this:
 
@@ -22,7 +24,8 @@ The camp structure will look something like this:
 > > > > > migrations.sql
 > > > > images/
 
-### Commands ###
+Commands
+--------
 
 All actions use the 'camp' command with specified arguments passed to perform a particular action:
 
@@ -34,7 +37,8 @@ All actions use the 'camp' command with specified arguments passed to perform a 
 > >  commit [-m <message] # creates an entry with a list of files to be sent to qa
 > >  push # pushes all commits to qa server
 
-### Git Repository ###
+Git Repository
+--------------
 
 A git repository provides functionality to enable campers to build in their own isolated environments using a snapshot of the live docroot (no more than 24 hours previous).  Each camp has its own docroot which will be stored in git. If a refresh is desired, the campX branch (a branch with the same name as the camp) will be removed and cloned from the master branch. In this way, developers can have a clean tree to work from on demand.
 
