@@ -8,21 +8,21 @@ PyCamps Structure
 
 The camp structure will look something like this:
 
-> /home/
-> > clints/
-> > > campX/
-> > > > .git/
-> > > > .gitignore
-> > > > httpd/
-> > > > > conf.d/skullcandy.conf
-> > > > > conf.d/ssl.conf
-> > > > mysql/
-> > > > > my.cnf
-> > > > docroot/
-> > > > > mobile/
-> > > > db/
-> > > > > migrations.sql
-> > > > images/
+    /home/
+        clints/
+            campX/
+                .git/
+                .gitignore
+                httpd/
+                    conf.d/skullcandy.conf
+                    conf.d/ssl.conf
+                mysql/
+                    my.cnf
+                docroot/
+                    mobile/
+                db/
+                    migrations.sql
+                images/
 
 Commands
 --------
