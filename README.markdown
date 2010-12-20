@@ -14,7 +14,7 @@ The camp structure will look something like this:
                 .git/
                 .gitignore
                 httpd/
-                    conf.d/skullcandy.conf
+                    conf.d/site.conf
                     conf.d/ssl.conf
                 mysql/
                     my.cnf
@@ -35,7 +35,9 @@ All actions use the 'camp' command with specified arguments passed to perform a 
         refresh db|web|conf|all  # refresh the database, the web root, the configs, or all
         add <file_list>  # adds the list of files ready to be sent to qa
         commit <message> # creates an entry with a list of files to be sent to qa
-        push # pushes all commits to qa server
+        qa # pushes all commits to qa server
+		merge # merges approved qa changes into live camp
+		push # pushes live camp into production
 
 Git Repository
 --------------
