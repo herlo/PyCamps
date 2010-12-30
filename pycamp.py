@@ -5,6 +5,7 @@ import sys
 import git
 import optparse
 
+from db import *
 import settings
 
 """
@@ -30,20 +31,13 @@ def do_init(arguments):
     #print arguments
 
     login = os.getuid()
-    home = os.environ['HOME']
+    campdb = PyCampsDB()
+    camp_id = campdb.create_camp(arguments[0], settings.CAMPS_ROOT, os.getuid(), settings.DB_USER, settings.DB_PASS, settings.DB_HOST, settings.DB_PORT)
 
-    basecamp = '/home/clints/Projects/GitPyCamps/'
-    camppath = home + '/' + settings.CAMP_NAME + '1' + '/'
+    basecamp = settings.GIT_ROOT
+    camppath = settings.CAMPS_ROOT + '/' + settings.CAMPS_BASENAME + str(camp_id) + '/'
 
-    try:
-        pass
-    #    os.mkdir(pathtocamp)
-    #    os.chdir(pathtocamp)
-
-    except OSError:
-        # we'll assume the dir is already there
-        # probably need to increment camp # 
-        print "Camp %s already exists" % pathtocamp
+    #print "Camp Path: %s" % camppath
 
     try:
         repo = git.Repo(basecamp)
@@ -60,7 +54,9 @@ def main():
         prog='pycamp', version='pycamp 0.1', usage='%prog <options>')
 
     options, arguments = p.parse_args()
-    if options:
+    #print "Options: %s" % str(options)
+    #print "Arguments: %s" % str(arguments)
+    if len(arguments) >= 2:
         do_camp(options, arguments)
     else:
         p.print_help()
