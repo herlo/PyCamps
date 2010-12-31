@@ -2,17 +2,19 @@
 
 ### Pre-Install Configuration ###
 
-NOTE: Configurations for anything but Apache Web Server and MySQL Database Server are not implemented yet.  If you decide to use a different configuration, please consider contributing to PyCamps.
+NOTE: Configurations for anything but Apache Web Server and MySQL Database Server are not implemented yet.  
+If you decide to use a different configuration, please consider contributing to PyCamps.
 
-Before beginning, PyCamps will need the following items configured, DO NOT INSTALL A WEB SERVER OR DATABASE UNTIL THESE ITEMS ARE PREPARED: 
+Before beginning, PyCamps will need the following items configured.  
+DO NOT INSTALL A WEB SERVER OR DATABASE UNTIL THESE ITEMS ARE PREPARED: 
 
 - A disk partition with LVM for the master databases and clones
 - Determine the current database size then multiply by 1.5, then multiply by the number of camps
     - For example, if the DB size is 3G, 3Gx1.5 # 4.5G per camp. 4.5Gx10 camps # 45G minimum partition
-    - NOTE: Keep growth in mind as databases almost always grow
+    - **NOTE**: Keep growth in mind as databases almost always grow
 - Make a volume group named 'db' from the above partition
 - Make a logical volume named 'campmaster' 
-    - NOTE: the VG and LV name can change, but will require other config changes
+    - **NOTE**: the VG and LV name can change, but will require other config changes
 - Make a filesystem (recommended ext3 or ext4) on the /dev/db/campmaster LV
 
 Manage each LV using autofs.  PyCamps will automatically clone LVs as camps are created using read-write LVM snapshots.
@@ -45,7 +47,7 @@ Grab the source code using git
   $ git clone git@github.com:herlo/PyCamps.git /path/to/PyCamps  
   .. snip ..  
   $ cd /path/to/PyCamps  
-  $ python setup.py install #NOTE: this does not work yet  FIXME  
+  $ python setup.py install **NOTE**: this does not work yet!  *FIXME*
 
 Source install is complete.  
 
