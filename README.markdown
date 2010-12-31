@@ -3,6 +3,10 @@ PyCamps
 
 PyCamps is inspired by the Perl DevCamps created by EndPoint. The idea is simply to make it easy for developers to have their own little environments to build web applications. This PyCamps tool is built to manage PHP/MySQL based applications, like CakePHP, Magento and Wordpress.   As with DevCamps, this tool could easily be adapted to accomodate other web development configurations, like Python, Perl with Postgresql or some other database.
 
+== PyCamps Installation ==
+
+To install PyCamps, read the INSTALL.markdown document in this directory.
+
 PyCamps Structure
 -----------------
 
@@ -29,15 +33,20 @@ Commands
 
 All actions use the 'camp' command with specified arguments passed to perform a particular action:
 
-    pycamp
+    pycamps
         init <desc> "mix master landing pages"  # camp_id returned on successful init
         rm <camp_id>  # remove camp_id
-        refresh db|web|conf|all  # refresh the database, the web root, the configs, or all
+		start|stop|restart db|web # similar to sysV service, but uses camp methods
+		refresh db|web|conf|all  # refresh the database, the web root, the configs, or all. Will restart appropriate services as needed.
         add <file_list>  # adds the list of files ready to be sent to qa
         commit <message> # creates an entry with a list of files to be sent to qa
         qa # pushes all commits to qa server
 		merge # merges approved qa changes into live camp
 		push # pushes live camp into production
+
+	pycampsadmin
+		Used to setup, configure and maintain the camps.  This will setup and configure the desired web server, database and git hooks.  
+		Likely will be available in the second major release of pycamps.
 
 Git Repository
 --------------
