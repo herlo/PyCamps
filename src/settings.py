@@ -13,7 +13,7 @@ CAMPS_ROOT = os.environ['HOME']
 CAMPS_BASENAME = 'camp'
 
 # the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
-CAMPS_DB = '/home/clints/Projects/PyCamps/pycamps.db'
+CAMPS_DB = '/home/clints/Projects/PyCamps/src/camps.db'
 
 # the path to the git repo to clone, must have an ending /
 
