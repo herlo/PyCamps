@@ -27,6 +27,22 @@ class PyCamps:
         self.login = os.getenv('LOGNAME')
         self.campdb = PyCampsDB()
 
+    def clone_docroot(self):
+        try:
+            repo = git.Repo(self.basecamp)
+            clone = repo.clone(self.camppath)
+            branch = clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
+            clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
+            print "Cloning camp%d web data complete" % self.camp_id
+        except git.GitCommandError as stderr_value:
+            print "The following error occurred: %s" % stderr_value
+
+    def clone_db(self):
+            print "camp%d database snapshot complete" % self.camp_id
+            print "camp%d database configured" % self.camp_id
+            print "camp%d database started" % self.camp_id
+        pass
+
     def do_init(self, options, arguments):
 
         """Initializes a new camp within the current user's home directory.  The following occurs:
@@ -40,19 +56,12 @@ class PyCamps:
     
         """
 
-        camp_id = self.campdb.create_camp(arguments[0], settings.CAMPS_ROOT, self.login, settings.DB_USER, settings.DB_PASS, settings.DB_HOST, settings.DB_PORT)
-    
+        self.camp_id = self.campdb.create_camp(arguments[0], settings.CAMPS_ROOT, self.login, settings.DB_USER, settings.DB_PASS, settings.DB_HOST, settings.DB_PORT)
         self.basecamp = settings.GIT_ROOT
-        self.camppath = settings.CAMPS_ROOT + '/' + settings.CAMPS_BASENAME + str(camp_id) + '/'
-    
-        #print "Camp Path: %s" % camppath
-    
-        try:
-            repo = git.Repo(self.basecamp)
-            clone = repo.clone(self.camppath)
-            branch = repo.create_head(settings.CAMPS_BASENAME + str(camp_id))
-        except git.GitCommandError as stderr_value:
-            print "The following error occurred: %s" % stderr_value
+        self.camppath = settings.CAMPS_ROOT + '/' + settings.CAMPS_BASENAME + str(self.camp_id) + '/'
+        print "== Creating camp%d ==\n" % self.camp_id
+        self.clone_docroot()
+        self.clone_db()
     
 def do_camp(options, arguments):
     if arguments[0] == "init":
