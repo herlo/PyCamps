@@ -1,8 +1,14 @@
 #  Installing PyCamps #
 
+### Dependencies ###
+
+- git-python-0.2x (http://gitorious.org/projects/git-python/)
+- sqlite-3 (http://www.sqlite.org/)
+- python-sqlite2 (http://www.sqlite.org/)
+
 ### Pre-Install Configuration ###
 
-NOTE: Configurations for anything but Apache Web Server and MySQL Database Server are not implemented yet.  
+NOTE: Configurations for anything but Apache Web Server (httpd) and MySQL Database Server (mysqld) are not implemented yet.  
 If you decide to use a different configuration, please consider contributing to PyCamps.
 
 Before beginning, PyCamps will need the following items configured.  

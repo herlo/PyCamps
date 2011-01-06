@@ -1,9 +1,8 @@
-#!/usr/bin/python
+# Main class for pycamps
 
 import os
 import sys
 import git
-import optparse
 
 from db import *
 import settings
@@ -38,9 +37,10 @@ class PyCamps:
             print "The following error occurred: %s" % stderr_value
 
     def clone_db(self):
-            print "camp%d database snapshot complete" % self.camp_id
-            print "camp%d database configured" % self.camp_id
-            print "camp%d database started" % self.camp_id
+        
+        print "camp%d database snapshot complete" % self.camp_id
+        print "camp%d database configured" % self.camp_id
+        print "camp%d database started" % self.camp_id
         pass
 
     def do_init(self, options, arguments):
@@ -63,23 +63,3 @@ class PyCamps:
         self.clone_docroot()
         self.clone_db()
     
-def do_camp(options, arguments):
-    if arguments[0] == "init":
-        camps = PyCamps()
-        camps.do_init(options, arguments[1:])
-
-def main():                         
-    p = optparse.OptionParser(description='Dispatches commands to create/manage development environments',
-        prog='pycamp', version='pycamp 0.1', usage='%prog <options>')
-
-    options, arguments = p.parse_args()
-    #print "Options: %s" % str(options)
-    #print "Arguments: %s" % str(arguments)
-    if len(arguments) >= 2:
-        do_camp(options, arguments)
-    else:
-        p.print_help()
-
-if __name__ == "__main__":
-    main()
-
