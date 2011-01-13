@@ -26,7 +26,7 @@ class PyCampsDB:
         c.execute('''INSERT INTO camps (description, path, owner, db_user, db_pass, db_host, status) 
             values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')''' % (description, path, owner, db_user, db_pass, db_host, 'ACTIVE'))
         camp_id = c.execute('''select max(id) from camps''').fetchone()[0]
-        c.execute('''UPDATE camps set db_port = %d where id = %d''' %((settings.BASE_DB_PORT + camp_id), camp_id))
+        c.execute('''UPDATE camps set db_port = %d where id = %d''' %((settings.DB_BASE_PORT + camp_id), camp_id))
         self.conn.commit()
         c.close()
         return camp_id

@@ -3,6 +3,7 @@
 import os
 import sys
 import git
+import func.overlord.client as fc
 
 from db import *
 import settings
@@ -36,12 +37,42 @@ class PyCamps:
         except git.GitCommandError as stderr_value:
             print "The following error occurred: %s" % stderr_value
 
+    def start_db(self, func_client, camp):
+        func_client.command.run("/usr/bin/mysqld_multi start %s" % camp)
+
+    def stop_db(self, func_client, camp):
+        func_client.command.run("/usr/bin/pkill %s" % camp)
+
+    def do_stop(self, options, arguments):
+        (svc, camp) = arguments[0],arguments[1]
+        if svc == "db":
+            client = fc.Client(settings.DB_HOST)
+            self.stop_db(client, camp)
+        if svc == "web":
+            pass
+
+    def do_start(self, options, arguments):
+        #(svc, host) = arguments[0],arguments[1]
+        #if svc == "db":
+        #    client = fc.Client(settings.DB_HOST)
+        #    self.start_db(client, host)
+        #if svc == "web":
+            pass
+
     def clone_db(self):
         
+        client = fc.Client(settings.DB_HOST)
+        lv_snapshot_cmd = "lvcreate -L 200M -s -p rw -n %s /dev/db/campmaster" % (settings.CAMPS_BASENAME + str(self.camp_id))
+        client.command.run(lv_snapshot_cmd)
         print "camp%d database snapshot complete" % self.camp_id
+
+        mysql_config = "echo '\n%s\n' >> /etc/my.cnf" % (settings.DB_CONFIG % {'camp_id': self.camp_id, 'port': (settings.DB_BASE_PORT + self.camp_id)})
+        print "MySQL Config: %s" % mysql_config
+        client.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
+
+        self.start_db(client)
         print "camp%d database started" % self.camp_id
-        pass
 
     def do_init(self, options, arguments):
 

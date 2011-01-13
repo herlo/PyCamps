@@ -26,8 +26,18 @@ DB = 'MySQL'
 # DB INFO
 DB_USER = 'test'
 DB_PASS = 'test'
-DB_HOST = 'localhost'
-BASE_DB_PORT = 3300
+DB_HOST = 'x201.egavas.org'
+DB_BASE_PORT = 3300
+
+# this is a python heredoc to generate the
+# mysql config entries for each db
+DB_CONFIG = """[mysqld%(camp_id)d]
+datadir = /var/lib/mysql/camp%(camp_id)d
+socket = /var/lib/mysql/camp%(camp_id)d/mysql.sock
+pid-file = /var/run/mysqld/camp%(camp_id)d.pid
+user = mysql
+port = %(port)d
+log-error=/var/log/mysql.log"""
 
 # the port can be set, but if left blank, will default to auto-incrementing.
 # The PyCamps config for MySQL uses individual ports to manage multiple db instances
