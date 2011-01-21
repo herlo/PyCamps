@@ -2,6 +2,7 @@
 
 import os
 import sys
+import re
 import git
 import time
 
@@ -46,8 +47,11 @@ class Camps:
     def _stop_camp_db(self, func_client, camp):
         func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp)
 
-    def do_stop(self, options, arguments):
-        svc, camp_id = arguments[0],arguments[1]
+    def do_stop(self, svc, camp_id=None):
+        if camp_id == None:
+            camp_id = self._get_camp_id()
+            if camp_id == None:
+                return 0
         if svc == "db":
             print "Stopping database on camp%s" % camp_id
             client = fc.Client(settings.DB_HOST)
@@ -60,8 +64,11 @@ class Camps:
         if svc == "web":
             pass
 
-    def do_start(self, options, arguments):
-        svc,camp_id = arguments[0],arguments[1]
+    def do_start(self, svc, camp_id=None):
+        if camp_id == None:
+            camp_id = self._get_camp_id()
+            if camp_id == None:
+                return 0
         if svc == "db":
             print "Starting database on camp%s" % camp_id
             client = fc.Client(settings.DB_HOST)
@@ -71,6 +78,16 @@ class Camps:
             print "camp%s database successfully started" % camp_id
         if svc == "web":
             pass
+
+    def _get_camp_id(self):
+        """Attempt to obtain the camp_id by looking at the basename
+            of the path.  If the path is not in a camp, the camp_id 
+            must be supplied and this function will return a failure."""
+        camp_basename = os.path.basename(os.getcwd())
+        if re.match("^%s\d+$" % settings.CAMPS_BASENAME, camp_basename):
+            return re.split("^%s" % settings.CAMPS_BASENAME, camp_basename)[1]
+        else:
+            return None
 
     def clone_db(self):
         

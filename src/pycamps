@@ -4,18 +4,33 @@ import optparse
 
 from camps import *
 
+def do_error(msg):
+    print "Error: %s" % msg
+    return
+
 def do_camp(options, arguments):
     camps = Camps()
     if arguments[0] == "init":
         camps.do_init(options, arguments[1:])
     if arguments[0] == "start":
         args = arguments[1:]
-        if len(args) >= 2:
-            camps.do_start(options, args)
+        if len(args) == 1:
+            result = camps.do_start(args[0])
+            if result == 0:
+                do_error("Current directory is not a camp. Pass the camp id or move to the camp directory")
+                return
+        elif len(args) >= 2:
+            result = camps.do_start(args[0], args[1])
+            pass
     if arguments[0] == "stop":
         args = arguments[1:]
-        if len(args) >= 2:
-            camps.do_stop(options, args)
+        if len(args) == 1:
+            result = camps.do_stop(args[0])
+            if result == 0:
+                do_error("Current directory is not a camp. Pass the camp id or move to the camp directory")
+                return
+        elif len(args) >= 2:
+            result = camps.do_stop(args[0], args[1])
 
 def main():                         
     p = optparse.OptionParser(description='Dispatches commands to create/manage development environments',
