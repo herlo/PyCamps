@@ -10,7 +10,7 @@ import func.overlord.client as fc
 from db import *
 import settings
 
-class PyCamps:
+class Camps:
     """
     Certain variables are stored per camp in the ~/user/campX/INFO file:
     

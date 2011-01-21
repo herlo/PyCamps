@@ -5,7 +5,7 @@ import optparse
 from camps import *
 
 def do_camp(options, arguments):
-    camps = PyCamps()
+    camps = Camps()
     if arguments[0] == "init":
         camps.do_init(options, arguments[1:])
     if arguments[0] == "start":
