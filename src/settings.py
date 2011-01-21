@@ -13,7 +13,7 @@ CAMPS_ROOT = os.environ['HOME']
 CAMPS_BASENAME = 'camp'
 
 # the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
-CAMPS_DB = '/home/clints/Projects/PyCamps/src/camps.db'
+CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
 
 # the path to the git repo to clone, must have an ending /
 
@@ -37,7 +37,7 @@ socket = /var/lib/mysql/camp%(camp_id)d/mysql.sock
 pid-file = /var/run/mysqld/camp%(camp_id)d.pid
 user = mysql
 port = %(port)d
-log-error=/var/log/mysql.log"""
+log = /var/log/mysqld-%(camp_id)d.log"""
 
 # the port can be set, but if left blank, will default to auto-incrementing.
 # The PyCamps config for MySQL uses individual ports to manage multiple db instances

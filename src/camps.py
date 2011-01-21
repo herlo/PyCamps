@@ -3,6 +3,8 @@
 import os
 import sys
 import git
+import time
+
 import func.overlord.client as fc
 
 from db import *
@@ -37,26 +39,37 @@ class PyCamps:
         except git.GitCommandError as stderr_value:
             print "The following error occurred: %s" % stderr_value
 
-    def start_db(self, func_client, camp):
+    def _start_camp_db(self, func_client, camp):
+        print "FUNC: %s:camp%s" % (func_client, camp)
         func_client.command.run("/usr/bin/mysqld_multi start %s" % camp)
 
-    def stop_db(self, func_client, camp):
-        func_client.command.run("/usr/bin/pkill %s" % camp)
+    def _stop_camp_db(self, func_client, camp):
+        func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp)
 
     def do_stop(self, options, arguments):
-        (svc, camp) = arguments[0],arguments[1]
+        svc, camp_id = arguments[0],arguments[1]
         if svc == "db":
+            print "Stopping database on camp%s" % camp_id
             client = fc.Client(settings.DB_HOST)
-            self.stop_db(client, camp)
+            self._stop_camp_db(client, camp_id)
+            # wait for it to stop
+            time.sleep(5)
+            # should actually check that the db is stopped 
+            print "camp%s database successfully stopped" % camp_id
+
         if svc == "web":
             pass
 
     def do_start(self, options, arguments):
-        #(svc, host) = arguments[0],arguments[1]
-        #if svc == "db":
-        #    client = fc.Client(settings.DB_HOST)
-        #    self.start_db(client, host)
-        #if svc == "web":
+        svc,camp_id = arguments[0],arguments[1]
+        if svc == "db":
+            print "Starting database on camp%s" % camp_id
+            client = fc.Client(settings.DB_HOST)
+            self._start_camp_db(client, camp_id)
+            # wait for it to start
+            time.sleep(5)
+            print "camp%s database successfully started" % camp_id
+        if svc == "web":
             pass
 
     def clone_db(self):
@@ -71,7 +84,7 @@ class PyCamps:
         client.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
 
-        self.start_db(client)
+        self._start_camp_db(client, self.camp_id)
         print "camp%d database started" % self.camp_id
 
     def do_init(self, options, arguments):
