@@ -42,8 +42,8 @@ All actions use the 'camp' command with specified arguments passed to perform a 
 		push # pushes live camp into production
 
 	pycampsadmin
-		Used to setup, configure and maintain the camps.  This will setup and configure the desired web server, database and git hooks.  
-		Likely will be available in the second major release of pycamps.
+		Used to setup, configure and maintain the camps.  This will setup and configure the desired web server, 
+		database and git hooks. Likely will be available in the second major release of pycamps.
 
 ## Git Repository ##
 
