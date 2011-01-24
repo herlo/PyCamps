@@ -1,0 +1,6 @@
+#
+# This is an automounter map and it has the following format
+# key [ -mount-options-separated-by-comma ] location
+# Details may be found in the autofs(5) manpage
+
+*		-fstype=ext3		:/dev/mapper/db-&
