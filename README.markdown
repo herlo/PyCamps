@@ -31,12 +31,14 @@ The camp structure will look something like this:
 All actions use the 'camp' command with specified arguments passed to perform a particular action:
 
     pycamps
-        init <desc> "mix master landing pages"  # camp_id returned on successful init
-        rm <camp_id>  # remove camp_id
-		start|stop|restart db|web # similar to sysV service, but uses camp methods
-		refresh db|web|conf|all  # refresh the database, the web root, the configs, or all
-        add <file_list>  # adds the list of files ready to be sent to qa
-        commit <message> # creates an entry with a list of files to be sent to qa
+        init description "mix master landing pages"  # camp_id returned on successful init
+        rm camp_id # remove camp_id
+		start|stop|restart db|web [camp_id] # similar to sysV service, but uses camp methods
+		refresh db|web|conf|all  [camp_id] # refresh the database, the web root, the configs, or all
+		share [camp_id] # shares a camp with another developer
+		clone [camp_id] # creates a shared instance of a shared camp
+        add file_list  # adds the list of files ready to be sent to qa
+        commit [message] # creates an entry with a list of files to be sent to qa
         qa # pushes all commits to qa server
 		merge # merges approved qa changes into live camp
 		push # pushes live camp into production

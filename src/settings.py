@@ -54,4 +54,3 @@ CAMPS_LV='campsmaster'
 
 # if using RSYNC method, these configs are needed
 
-
