@@ -1,7 +1,10 @@
 # PyCamps database manager
 
 import os
-import sqlite3 as sqlite
+try:
+    import sqlite3 as sqlite
+except:
+    from pysqlite2 import dbapi2 as sqlite
 
 import settings
 

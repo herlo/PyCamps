@@ -37,11 +37,11 @@ class Camps:
             branch = clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
             clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
             print "Cloning camp%d web data complete" % self.camp_id
-        except git.GitCommandError as stderr_value:
+        except git.GitCommandError:
+            stderr_value = 'Unknown'
             print "The following error occurred: %s" % stderr_value
 
     def _start_camp_db(self, func_client, camp):
-        print "FUNC: %s:camp%s" % (func_client, camp)
         func_client.command.run("/usr/bin/mysqld_multi start %s" % camp)
 
     def _stop_camp_db(self, func_client, camp):
