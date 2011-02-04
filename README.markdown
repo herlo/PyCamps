@@ -32,10 +32,10 @@ All actions use the 'camp' command with specified arguments passed to perform a 
 
     pycamps
         init description "mix master landing pages"  # camp_id returned on successful init
-        rm camp_id # remove camp_id
+        rm camp_id # remove camp_id (must be run within camp *and* requires camp_id)
 		start|stop|restart db|web [camp_id] # similar to sysV service, but uses camp methods
 		refresh db|web|conf|all  [camp_id] # refresh the database, the web root, the configs, or all
-		share [camp_id] # shares a camp with another developer
+		share|unshare [camp_id] # shares a camp with another developer
 		clone [camp_id] # creates a shared instance of a shared camp
         add file_list  # adds the list of files ready to be sent to qa
         commit [message] # creates an entry with a list of files to be sent to qa
