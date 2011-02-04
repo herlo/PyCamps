@@ -1,5 +1,4 @@
 # PyCamps configurations loader
-
 import os
 
 # the root location of all camps
@@ -44,13 +43,17 @@ log = /var/log/mysqld-%(camp_id)d.log"""
 DB_PORT = None
 # location within where db master and clones will live
 DB_ROOT = '/var/lib/mysql'
+DB_USER = 'mysql'
+DB_GROUP = 'mysql'
 
 # How do we clone the dbs?
-DB_CLONE_METHOD='LVM-SNAP'  # alternate method could be DB_CLONE_METHOD=RSYNC
+#DB_CLONE_METHOD='LVM-SNAP'  # default clone method could be DB_CLONE_METHOD=RSYNC
+DB_CLONE_METHOD='RSYNC'     # alternate clone method 
 
 # if using LVM-SNAP method, these configs are needed
 CAMPS_VG='db'
 CAMPS_LV='campsmaster'
+CAMPS_LV_SIZE='200M'
 
 # if using RSYNC method, these configs are needed
 

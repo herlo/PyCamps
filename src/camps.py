@@ -5,6 +5,7 @@ import sys
 import re
 import git
 import time
+import shutil
 
 import func.overlord.client as fc
 
@@ -42,7 +43,8 @@ class Camps:
             print "The following error occurred: %s" % stderr_value
 
     def _start_camp_db(self, func_client, camp):
-        func_client.command.run("/usr/bin/mysqld_multi start %s" % camp)
+        result = func_client.command.run("/usr/bin/mysqld_multi start %s" % camp)
+        print "Result: %s" % str(result)
 
     def _stop_camp_db(self, func_client, camp):
         func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp)
@@ -77,35 +79,59 @@ class Camps:
             time.sleep(5)
             print "camp%s database successfully started" % camp_id
         if svc == "web":
+            print "camp%s webserver successfully started" % camp_id
             pass
 
     def _get_camp_id(self):
-        """Attempt to obtain the camp_id by looking at the basename
-            of the path.  If the path is not in a camp, the camp_id 
-            must be supplied and this function will return a failure."""
+        """Attempt to obtain the camp_id by looking at the basename of the path.  
+           If the path is not in a camp, this function will fail."""
         camp_basename = os.path.basename(os.getcwd())
         if re.match("^%s\d+$" % settings.CAMPS_BASENAME, camp_basename):
             return re.split("^%s" % settings.CAMPS_BASENAME, camp_basename)[1]
         else:
             return None
 
-    def clone_db(self):
+    def _clone_db_lvm_snap(self, client):
+        """Clones the campmaster db into a particular camp db 
+        using logical volume snapshots"""
         
-        client = fc.Client(settings.DB_HOST)
-        lv_snapshot_cmd = "lvcreate -L 200M -s -p rw -n %s /dev/db/campmaster" % (settings.CAMPS_BASENAME + str(self.camp_id))
+        lv_snapshot_cmd = "lvcreate -L %s -s -p rw -n %s /dev/db/campmaster" % (settings.CAMPS_LV_SIZE, settings.CAMPS_BASENAME + str(self.camp_id))
         client.command.run(lv_snapshot_cmd)
         print "camp%d database snapshot complete" % self.camp_id
 
+    def _clone_db_rsync(self, client):
+        """Clones the campmaster db into a particular camp db 
+        using logical volume snapshots"""
+        rsync_cmd = "/usr/bin/rsync -a %s/%smaster/* %s/%s" % (settings.DB_ROOT, settings.CAMPS_BASENAME, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
+
+    def _chown_db_path(self, client):
+        client.command.run(rsync_cmd)
+        chown_cmd = "/bin/chown -R %s.%s %s/%s" % (settings.DB_USER, settings.DB_GROUP, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
+        client.command.run(chown_cmd)
+
+    def _add_db_config(self, client):
         mysql_config = "echo '\n%s\n' >> /etc/my.cnf" % (settings.DB_CONFIG % {'camp_id': self.camp_id, 'port': (settings.DB_BASE_PORT + self.camp_id)})
         print "MySQL Config: %s" % mysql_config
         client.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
 
-        self._start_camp_db(client, self.camp_id)
-        print "camp%d database started" % self.camp_id
+    def clone_db(self):
+        """Clones the campmaster db into a particular camp db
+        and adds appropriate configs into the database itself"""
+
+        # determine the method of cloning
+        client = fc.Client(settings.DB_HOST)
+        
+        if settings.DB_CLONE_METHOD == "RSYNC":
+            self._clone_db_rsync(client)
+        else:
+            self._clone_db_lvm_snap(client)
+        self._chown_db_path(client)
+        self._add_db_config(client)
+
+
 
     def do_init(self, options, arguments):
-
         """Initializes a new camp within the current user's home directory.  The following occurs:
         
         git clone -b campX origin/master #clones master branch 
@@ -114,7 +140,6 @@ class Camps:
         creates new snapshot from live db
         configures new database on devdb
         creates symbolic link to static data (images)
-    
         """
 
         self.camp_id = self.campdb.create_camp(arguments[0], settings.CAMPS_ROOT, self.login, settings.DB_USER, settings.DB_PASS, settings.DB_HOST, settings.DB_PORT)
@@ -122,5 +147,7 @@ class Camps:
         self.camppath = settings.CAMPS_ROOT + '/' + settings.CAMPS_BASENAME + str(self.camp_id) + '/'
         print "== Creating camp%d ==\n" % self.camp_id
         self.clone_docroot()
+        self.do_start('web', camp_id=self.camp_id)
         self.clone_db()
-    
+        self.do_start('db', camp_id=self.camp_id)
+
