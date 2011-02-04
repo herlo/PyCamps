@@ -102,16 +102,15 @@ class Camps:
     def _clone_db_rsync(self, client):
         """Clones the campmaster db into a particular camp db 
         using logical volume snapshots"""
-        rsync_cmd = "/usr/bin/rsync -a %s/%smaster/* %s/%s" % (settings.DB_ROOT, settings.CAMPS_BASENAME, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
 
     def _chown_db_path(self, client):
+        rsync_cmd = "/usr/bin/rsync -a %s/%smaster/* %s/%s" % (settings.DB_ROOT, settings.CAMPS_BASENAME, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
         client.command.run(rsync_cmd)
         chown_cmd = "/bin/chown -R %s.%s %s/%s" % (settings.DB_USER, settings.DB_GROUP, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
         client.command.run(chown_cmd)
 
     def _add_db_config(self, client):
         mysql_config = "echo '\n%s\n' >> /etc/my.cnf" % (settings.DB_CONFIG % {'camp_id': self.camp_id, 'port': (settings.DB_BASE_PORT + self.camp_id)})
-        print "MySQL Config: %s" % mysql_config
         client.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
 
@@ -129,7 +128,28 @@ class Camps:
         self._chown_db_path(client)
         self._add_db_config(client)
 
+    def do_remove(self, options, arguments):
+        """Removes a camp directory and its corresponding db directory"""
 
+        # add something here to check for pycampsadmin later on
+
+        camp_id = self._get_camp_id()
+        if camp_id == None:
+            return 0
+        if os.getuid() != os.stat('%s/%s' %(settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )[4]:
+            return 1
+
+        client = fc.Client(settings.DB_HOST)
+        # self._stop_camp_db(client, camp_id)
+        rm_db_cmd = "/bin/rm -r %s/%s" % (settings.DB_ROOT, settings.CAMPS_BASENAME + str(camp_id))
+        # ensure the db is stopped for this camp
+        self._stop_camp_db(client, camp_id)
+        print "camp%s database stopped" % camp_id
+        client.command.run(rm_db_cmd)
+        print "camp%s database directory removed" % camp_id
+        os.chdir(settings.CAMPS_ROOT)
+        shutil.rmtree("%s/%s" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
+        print "camp%s directory removed" % camp_id
 
     def do_init(self, options, arguments):
         """Initializes a new camp within the current user's home directory.  The following occurs:
