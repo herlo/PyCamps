@@ -1,12 +1,12 @@
 #  Installing PyCamps #
 
-### Dependencies ###
+## Dependencies ##
 
 - git-python-0.2x (http://gitorious.org/projects/git-python/)
 - sqlite-3 (http://www.sqlite.org/)
 - python-sqlite2 (http://www.sqlite.org/)
 
-### Pre-Install Configuration ###
+## Pre-Install Configuration ##
 
 NOTE: Configurations for anything but Apache Web Server (httpd) and MySQL Database Server (mysqld) are not implemented yet.  
 If you decide to use a different configuration, please consider contributing to PyCamps.
@@ -36,7 +36,7 @@ On a RHEL/Fedora based system, as root, run the following commands:
 
 NOTE: Any changes made previously could affect the autofs configuration, please adjust accordingly.
 
-### Recommendations ###
+## Recommendations ##
 
 - /home should live on its own partition, but if it doesn't or can't, make sure to allocate enough disk for the camps' docroot
     - For example, if the current docroot is 10G, 10Gx1.5 # 11.5G per camp. 11.5Gx10 camps # 115G 
