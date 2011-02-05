@@ -94,7 +94,7 @@ class Camps:
         """Clones the campmaster db into a particular camp db 
         using logical volume snapshots"""
         
-        lv_snapshot_cmd = "lvcreate -L %s -s -p rw -n %s /dev/db/campmaster" % (settings.CAMPS_LV_SIZE, settings.CAMPS_BASENAME + str(self.camp_id))
+        lv_snapshot_cmd = "lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (settings.CAMPS_LV_SIZE, settings.CAMPS_BASENAME + str(self.camp_id), settings.CAMPS_VG, settings.CAMPS_LV)
         client.command.run(lv_snapshot_cmd)
         print "camp%d database snapshot complete" % self.camp_id
 
