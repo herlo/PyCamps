@@ -4,6 +4,7 @@ import os
 # the root location of all camps
 
 CAMPS_ROOT = os.environ['HOME']
+#CAMPS_ROOT = '/tmp/campstest'
 
 # the dir where the camp will be stored within the 
 # user's home directory camp will be turned into 
@@ -16,7 +17,7 @@ CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
 
 # the path to the git repo to clone, must have an ending /
 
-GIT_ROOT = '/home/clints/Projects/GitPyCamps/'
+GIT_ROOT = '/home/clints/Projects/GitBarePyCamps/'
 
 # CHOOSE DB TYPE / Only MySQL is available atm
 

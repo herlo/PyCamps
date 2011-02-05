@@ -44,7 +44,6 @@ class Camps:
 
     def _start_camp_db(self, func_client, camp):
         result = func_client.command.run("/usr/bin/mysqld_multi start %s" % camp)
-        print "Result: %s" % str(result)
 
     def _stop_camp_db(self, func_client, camp):
         func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp)
@@ -134,10 +133,17 @@ class Camps:
         # add something here to check for pycampsadmin later on
 
         camp_id = self._get_camp_id()
-        if camp_id == None:
+        if camp_id != None:
             return 0
-        if os.getuid() != os.stat('%s/%s' %(settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )[4]:
+
+        camp_id = arguments[0]
+        try:
+            filestats = os.stat('%s/%s' %(settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
+        except OSError:
             return 1
+
+        if os.getuid() != filestats[4]:
+            return 2
 
         client = fc.Client(settings.DB_HOST)
         # self._stop_camp_db(client, camp_id)

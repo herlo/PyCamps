@@ -16,9 +16,11 @@ def do_camp(options, arguments):
     if arguments[0] == "rm":
         result = camps.do_remove(options, arguments[1:])
         if result == 0:
-            do_error("Current directory is not a camp. Camps can only be removed by the owner.")
+            do_error("A camp cannot be removed from within its own directory.")
         if result == 1:
-            do_error("Camp being deleted is not owned by you. Camps can only be removed by the owner.")
+            do_error("The camp to be deleted does not exist.")
+        if result == 2:
+            do_error("A camp can only be removed by its owner.")
             return
         return
     if arguments[0] == "start":
