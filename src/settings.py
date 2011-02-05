@@ -17,7 +17,7 @@ CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
 
 # the path to the git repo to clone, must have an ending /
 
-GIT_ROOT = '/home/clints/Projects/GitBarePyCamps/'
+GIT_ROOT = '/home/clints/Projects/GitBarePyCamps'
 
 # CHOOSE DB TYPE / Only MySQL is available atm
 
