@@ -13,13 +13,19 @@ def do_camp(options, arguments):
     if arguments[0] == "init":
         camps.do_init(options, arguments[1:])
         return
+    if arguments[0] == "list":
+        if len(arguments) >= 2:
+            camps.do_list(options, arguments[1])
+        else:
+            camps.do_list(options)
+        return
     if arguments[0] == "rm":
         result = camps.do_remove(options, arguments[1:])
-        if result == 0:
-            do_error("A camp cannot be removed from within its own directory.")
         if result == 1:
-            do_error("The camp to be deleted does not exist.")
+            do_error("A camp cannot be removed from within its own directory.")
         if result == 2:
+            do_error("The camp to be deleted does not exist.")
+        if result == 3:
             do_error("A camp can only be removed by its owner.")
             return
         return
@@ -50,7 +56,7 @@ def main():
         prog='pycamp', version='pycamp 0.1', usage='%prog <options>')
 
     options, arguments = p.parse_args()
-    if len(arguments) >= 2:
+    if len(arguments) >= 1:
         do_camp(options, arguments)
     else:
         p.print_help()
