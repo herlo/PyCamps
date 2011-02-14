@@ -80,12 +80,19 @@ class Camps:
 
     def _clone_docroot(self):
         try:
-            #FIXME#
-            repo = git.Repo(self.basecamp)
-            remote = repo.create_remote('campmaster', settings.GIT_REMOTE)
-            clone = remote.clone(self.camppath)
+            # setup the blank repo 
+            repo = git.Repo(settings.GIT_ROOT)
+            # clone the blank repo
+            clone = repo.clone(self.camppath)
+            # create a campX branch
             branch = clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
+            # checkout the campX branch
             self.camp_repo = clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
+            # if the origin exists, remove it (we may not need this in the future)
+            clone.delete_remote(clone.remotes.origin)
+            # create the origin remote
+            clone.create_remote('origin', settings.GIT_REMOTE)
+            clone.remotes.origin.pull('refs/heads/origin:refs/heads/camp%s' % (settings.CAMPS_BASENAME + str(self.camp_id)) )
             print "Cloning camp%d web data complete" % self.camp_id
         except NoSuchPathError as e:
             raise CampError("Cannot clone the non-existent directory: %s" % e)
@@ -94,6 +101,7 @@ class Camps:
         """configure the camp to work with the web server.  Default server is apache"""
 
         # write the config file out
+        # assuming here that the full directory structure is built
         self.web_conf_file = '''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)
         file = open(self.web_conf_file, 'w+')
         file.write('''Alias /%s %s/%s\n''' % (self.campname, self.camppath, settings.WEB_DOCROOT) )
@@ -241,9 +249,8 @@ class Camps:
             web_client = fc.Client(settings.WEB_HOST)
             self._web_config()
             self._push_web_config()
-            self._web_symlink_config(web_client)
+#            self._web_symlink_config(web_client)
             self._restart_web(web_client)
-        #    self._start_web(client, camp_id=self.camp_id)
         except CampError as e:
                 self.campdb.delete_camp(self.camp_id)
                 #also possibly need to delete the camp db instance

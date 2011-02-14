@@ -55,7 +55,7 @@ def main():
     p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
     p_stop.set_defaults(func=camps.restart)
 
-#    # restart camp components
+#    # refresh camp components
 #    p_refresh = sp.add_parser('refresh', help='refresh shed component')
 #    p_refresh.add_argument('-i', '--id', metavar='id', help='shed id')
 #    p_refresh.add_argument('--db', help='stop db', action='store_true')
