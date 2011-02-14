@@ -83,22 +83,28 @@ class Camps:
             # setup the blank repo 
             repo = git.Repo(settings.GIT_ROOT)
             # clone the blank repo
-            clone = repo.clone(self.camppath)
+            self.clone = repo.clone(self.camppath)
             # create a campX branch
-            branch = clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
+            branch = self.clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
             # checkout the campX branch
-            self.camp_repo = clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
+            self.camp_repo = self.clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
             # if the origin exists, remove it (we may not need this in the future)
-            clone.delete_remote(clone.remotes.origin)
+            self.clone.delete_remote(self.clone.remotes.origin)
             # create the origin remote
-            clone.create_remote('origin', settings.GIT_REMOTE)
-            clone.remotes.origin.pull('refs/heads/origin:refs/heads/camp%s' % (settings.CAMPS_BASENAME + str(self.camp_id)) )
+            self.clone.create_remote('origin', settings.GIT_REMOTE)
+            self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % (settings.CAMPS_BASENAME + str(self.camp_id)) )
             print "Cloning camp%d web data complete" % self.camp_id
         except NoSuchPathError as e:
             raise CampError("Cannot clone the non-existent directory: %s" % e)
 
     def _web_config(self):
         """configure the camp to work with the web server.  Default server is apache"""
+
+        # confirm the full path exists, if not, create it
+        try:
+            os.stat('%s/%s' %(self.camppath, settings.WEB_CONFIG_BASE) )
+        except OSError as e:
+            os.makedirs('%s/%s' %(self.camppath, settings.WEB_CONFIG_BASE), 0775)
 
         # write the config file out
         # assuming here that the full directory structure is built
@@ -110,7 +116,10 @@ class Camps:
     def _push_web_config(self):
 
         # commit it to the git repo and push it
-        pass
+        index = self.clone.index
+        index.add(['''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)])
+        commit = index.commit('''automated from pycamps: adding web config file''')
+        self.clone.remotes.origin.push('refs/heads/camp%s:refs/heads/camp%s' % (str(self.camp_id), str(self.camp_id)) )
 
     def _web_symlink_config(self, func_client):
         # do the symbolic link to httpd_config_root
@@ -249,7 +258,7 @@ class Camps:
             web_client = fc.Client(settings.WEB_HOST)
             self._web_config()
             self._push_web_config()
-#            self._web_symlink_config(web_client)
+            self._web_symlink_config(web_client)
             self._restart_web(web_client)
         except CampError as e:
                 self.campdb.delete_camp(self.camp_id)
