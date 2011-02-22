@@ -5,3 +5,4 @@ settings.py
 *camp*.db
 *.pyc
 build
+pycamps.egg-info
