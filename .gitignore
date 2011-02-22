@@ -4,3 +4,4 @@ settings.py
 *.orig
 *camp*.db
 *.pyc
+build
