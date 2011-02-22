@@ -1,67 +1,76 @@
 #!/usr/bin/python
 
-import optparse
+import time
+import argparse
 
 from camps import *
 
-def do_error(msg):
-    print "Error: %s" % msg
-    return
+camps = Camps()
 
-def do_camp(options, arguments):
-    camps = Camps()
-    if arguments[0] == "init":
-        camps.do_init(options, arguments[1:])
-        return
-    if arguments[0] == "list":
-        if len(arguments) >= 2:
-            camps.do_list(options, arguments[1])
-        else:
-            camps.do_list(options)
-        return
-    if arguments[0] == "rm":
-        result = camps.do_remove(options, arguments[1:])
-        if result == 1:
-            do_error("A camp cannot be removed from within its own directory.")
-        if result == 2:
-            do_error("The camp to be deleted does not exist.")
-        if result == 3:
-            do_error("A camp can only be removed by its owner.")
-            return
-        return
-    if arguments[0] == "start":
-        args = arguments[1:]
-        if len(args) == 1:
-            result = camps.do_start(args[0])
-            if result == 0:
-                do_error("Current directory is not a camp. Pass the camp id or move to the camp directory.")
-                return
-        elif len(args) >= 2:
-            result = camps.do_start(args[0], args[1])
-            pass
-        return
-    if arguments[0] == "stop":
-        args = arguments[1:]
-        if len(args) == 1:
-            result = camps.do_stop(args[0])
-            if result == 0:
-                do_error("Current directory is not a camp. Pass the camp id or move to the camp directory.")
-                return
-        elif len(args) >= 2:
-            result = camps.do_stop(args[0], args[1])
-        return
+def main():
 
-def main():                         
-    p = optparse.OptionParser(description='Dispatches commands to create/manage development environments',
-        prog='pycamp', version='pycamp 0.1', usage='%prog <options>')
+    p = argparse.ArgumentParser(
+        description='''Dispatches commands to 
+        create/manage development environments''',
+    )
 
-    options, arguments = p.parse_args()
-    if len(arguments) >= 1:
-        do_camp(options, arguments)
-    else:
-        p.print_help()
+    # create a camp
+    sp = p.add_subparsers()
+    p_init = sp.add_parser('init', help='initialize (create) a shed')
+    p_init.add_argument('desc', help='description of shed')
+    p_init.set_defaults(func=camps.create)
+
+    # list camps
+    p_list = sp.add_parser('list', help='list all active sheds (by default)')
+    p_list.add_argument('-a', '--all', action='store_true', help='include inactive sheds')
+    p_list.set_defaults(func=camps.list)
+
+    # remove a camp
+    p_rm = sp.add_parser('rm', help='remove a shed')
+    p_rm.add_argument('id', help='shed #')
+    p_rm.add_argument('-f', '--force', action='store_true', help='ignore checks, remove anyway')
+    p_rm.set_defaults(func=camps.remove)
+
+    # start camp components
+    p_start = sp.add_parser('start', help='start a shed component')
+    p_start.add_argument('-i', '--id', metavar='id', help='shed id')
+    p_start.add_argument('--db', help='start db', action='store_true')
+    p_start.add_argument('--web', help='start web server', action='store_true')
+    p_start.add_argument('-a', '--all', help='start db and web', action='store_true')
+    p_start.set_defaults(func=camps.start)
+
+    # stop camp components
+    p_stop = sp.add_parser('stop', help='stop a shed component')
+    p_stop.add_argument('-i', '--id', metavar='id', help='shed id')
+    p_stop.add_argument('--db', help='stop db', action='store_true')
+    p_stop.add_argument('--web', help='stop web server', action='store_true')
+    p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
+    p_stop.set_defaults(func=camps.stop)
+
+    # restart camp components
+    p_stop = sp.add_parser('restart', help='restart shed component')
+    p_stop.add_argument('-i', '--id', metavar='id', help='shed id')
+    p_stop.add_argument('--db', help='stop db', action='store_true')
+    p_stop.add_argument('--web', help='stop web server', action='store_true')
+    p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
+    p_stop.set_defaults(func=camps.restart)
+
+#    # refresh camp components
+#    p_refresh = sp.add_parser('refresh', help='refresh shed component')
+#    p_refresh.add_argument('-i', '--id', metavar='id', help='shed id')
+#    p_refresh.add_argument('--db', help='stop db', action='store_true')
+#    p_refresh.add_argument('--web', help='stop web server', action='store_true')
+#    p_refresh.add_argument('-a', '--all', help='stop all', action='store_true')
+#    p_refresh.set_defaults(func=camps.refresh)
+
+    #print p_list
+
+    args = p.parse_args()
+    try:
+        args.func(args)
+    except CampError as e:
+        print e.value
+
 
 if __name__ == "__main__":
     main()
-
-
