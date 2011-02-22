@@ -2,12 +2,12 @@
 
 ### Major Features ###
 
-- start/stop http server
-- remove a camp (only works if camp is owned by user / admin)
 - share/unshare/clone a camp between developers
 - add files to camp repo
 - commit index to camp repo
 - push camp to central location for qa or live environments
+- mysql client access per camp
+- apache log per camp 
 
 #### Admin Features ####
 
