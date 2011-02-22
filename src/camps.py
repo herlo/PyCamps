@@ -113,13 +113,16 @@ class Camps:
         file.write('''Alias /%s %s/%s\n''' % (self.campname, self.camppath, settings.WEB_DOCROOT) )
         file.close()
 
-    def _push_web_config(self):
+# originally, I had thought committing the configs for apache was a good idea
+# instead, I've decided that adding the web configs to the .gitignore is better
 
-        # commit it to the git repo and push it
-        index = self.clone.index
-        index.add(['''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)])
-        commit = index.commit('''automated from pycamps: adding web config file''')
-        self.clone.remotes.origin.push('refs/heads/camp%s:refs/heads/camp%s' % (str(self.camp_id), str(self.camp_id)) )
+#    def _push_web_config(self):
+#
+#        # commit it to the git repo and push it
+#        index = self.clone.index
+#        index.add(['''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)])
+#        commit = index.commit('''automated from pycamps: adding web config file''')
+#        self.clone.remotes.origin.push('refs/heads/camp%s:refs/heads/camp%s' % (str(self.camp_id), str(self.camp_id)) )
 
     def _web_symlink_config(self, func_client):
         # do the symbolic link to httpd_config_root
@@ -257,7 +260,6 @@ class Camps:
             self._clone_docroot()
             web_client = fc.Client(settings.WEB_HOST)
             self._web_config()
-            self._push_web_config()
             self._web_symlink_config(web_client)
             self._restart_web(web_client)
         except CampError as e:
