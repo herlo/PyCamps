@@ -1,6 +1,10 @@
 # PyCamps configurations loader
 import os
 
+# pycamps administrator (likely you)
+ADMIN_NAME = 'Clint Savage'
+ADMIN_EMAIL = 'herlo1@gmail.com'
+
 # the root location of all camps
 
 #CAMPS_ROOT = os.environ['HOME']
