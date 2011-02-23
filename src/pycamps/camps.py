@@ -11,8 +11,8 @@ from git.errors import InvalidGitRepositoryError, NoSuchPathError, GitCommandErr
 
 import func.overlord.client as fc
 
-from db import *
-import settings
+from pycamps.db import *
+import pycamps.settings as settings
 
 class CampError(Exception):
     def __init__(self, value):
@@ -127,7 +127,7 @@ class Camps:
     def _web_symlink_config(self, func_client):
         # do the symbolic link to httpd_config_root
 
-        symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTPD_CONFIG_DIR, self.campname)
+        symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTP_CONFIG_DIR, self.campname)
         result = func_client.command.run(symlink_httpd_config)
 
     def _restart_web(self, func_client):
@@ -249,16 +249,16 @@ class Camps:
         """
 
         try:
-            self.camp_id = self.campdb.create_camp(arguments.desc, settings.CAMPS_ROOT, self.login, settings.DB_USER, settings.DB_PASS, settings.DB_HOST, settings.DB_PORT)
+            self.camp_id = self.campdb.create_camp(arguments.desc, settings.CAMPS_ROOT, self.login, settings.DB_USER, settings.DB_PASS, settings.DB_HOST)
             self.camppath = """%s/%s""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(self.camp_id) )
             self.basecamp = """%s/%s""" % (settings.CAMPS_ROOT, settings.GIT_ROOT)
             self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
             print "== Creating camp%d ==\n" % self.camp_id
-            db_client = fc.Client(settings.DB_HOST)
+            db_client = fc.Client(settings.FUNC_DB_HOST)
             self._clone_db(db_client)
             self._start_db(db_client, self.camp_id)
             self._clone_docroot()
-            web_client = fc.Client(settings.WEB_HOST)
+            web_client = fc.Client(settings.FUNC_WEB_HOST)
             self._web_config()
             self._web_symlink_config(web_client)
             self._restart_web(web_client)
