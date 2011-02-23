@@ -24,7 +24,7 @@ class PyCampsDB:
         self.conn.commit()
         c.close()
 
-    def create_camp(self, description, path, owner, db_user=None, db_pass=None, db_host=None, db_port=None):
+    def create_camp(self, description, path, owner, db_user=None, db_pass=None, db_host=None):
         c = self.conn.cursor()
         c.execute('''INSERT INTO camps (description, path, owner, db_user, db_pass, db_host, active) 
             values ('%s', '%s', '%s', '%s', '%s', '%s', %d)''' % (description, path, owner, db_user, db_pass, db_host, 1))

@@ -1,10 +1,14 @@
 # PyCamps configurations loader
 import os
 
+# pycamps administrator (likely you)
+ADMIN_NAME = 'Clint Savage'
+ADMIN_EMAIL = 'herlo1@gmail.com'
+
 # the root location of all camps
 
-CAMPS_ROOT = os.environ['HOME']
-#CAMPS_ROOT = '/tmp/campstest'
+#CAMPS_ROOT = os.environ['HOME']
+CAMPS_ROOT = '/tmp'
 
 # the dir where the camp will be stored within the 
 # user's home directory camp will be turned into 
@@ -17,16 +21,19 @@ CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
 
 # the path to the git repo to clone, must have an ending /
 
-GIT_ROOT = '/home/clints/Projects/GitBarePyCamps'
+GIT_ROOT = '/home/clints/Projects/campmaster'
+
+# remote Git repository.  Leave this blank to use local repo  #FIXME
+GIT_REMOTE = 'gitolite@camps.skullcandy.com:testing'
 
 # CHOOSE DB TYPE / Only MySQL is available atm
 
 DB = 'MySQL'
 
 # DB INFO
-DB_USER = 'test'
-DB_PASS = 'test'
-DB_HOST = 'x201.egavas.org'
+DB_USER = 'root'
+DB_PASS = ''
+DB_HOST = 'localhost'
 DB_BASE_PORT = 3300
 
 # this is a python heredoc to generate the
@@ -39,22 +46,29 @@ user = mysql
 port = %(port)d
 log = /var/log/mysqld-%(camp_id)d.log"""
 
-# the port can be set, but if left blank, will default to auto-incrementing.
-# The PyCamps config for MySQL uses individual ports to manage multiple db instances
-DB_PORT = None
 # location within where db master and clones will live
 DB_ROOT = '/var/lib/mysql'
 DB_USER = 'mysql'
 DB_GROUP = 'mysql'
 
 # How do we clone the dbs?
-#DB_CLONE_METHOD='LVM-SNAP'  # default clone method could be DB_CLONE_METHOD=RSYNC
-DB_CLONE_METHOD='RSYNC'     # alternate clone method 
+DB_CLONE_METHOD='LVM-SNAP'  # default clone method could be DB_CLONE_METHOD=RSYNC
+#DB_CLONE_METHOD='RSYNC'     # alternate clone method 
 
 # if using LVM-SNAP method, these configs are needed
 CAMPS_VG='db'
-CAMPS_LV='campsmaster'
+CAMPS_LV='campmaster'
 CAMPS_LV_SIZE='200M'
 
 # if using RSYNC method, these configs are needed
 
+# web configs
+WEB_CONFIG_BASE='httpd/conf.d'
+WEB_CONFIG_FILE='site.conf'
+WEB_DOCROOT='docroot'
+
+HTTP_CONFIG_DIR='/etc/httpd/conf.d'
+
+# func settings
+FUNC_DB_HOST = 'x201.egavas.org'
+FUNC_WEB_HOST = 'x201.egavas.org'
