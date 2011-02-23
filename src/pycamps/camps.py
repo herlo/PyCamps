@@ -94,6 +94,7 @@ class Camps:
             self.clone.create_remote('origin', settings.GIT_REMOTE)
             self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % (settings.CAMPS_BASENAME + str(self.camp_id)) )
             print "Cloning camp%d web data complete" % self.camp_id
+
         except NoSuchPathError as e:
             raise CampError("Cannot clone the non-existent directory: %s" % e)
 
@@ -137,10 +138,17 @@ class Camps:
 
     def _start_db(self, func_client, camp_id):
         result = func_client.command.run("/usr/bin/mysqld_multi start %s" % camp_id)
+        time.sleep(5)
+        result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
+        if result[settings.FUNC_DB_HOST][0] != 0:
+            raise CampError('Unable to start camp%s, contact the administrator <%s>' % (camp_id, settings.ADMIN_EMAIL))
 
     def _stop_db(self, func_client, camp_id):
         result = func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp_id)
-
+        time.sleep(5)
+        result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
+        if result[settings.FUNC_DB_HOST][0] != 1:
+            raise CampError('Unable to stop camp%s, contact the administrator <%s>' % (camp_id, settings.ADMIN_EMAIL))
 
     def _get_camp_id(self):
         """Attempt to obtain the camp_id by looking at the basename of the path.  
@@ -161,7 +169,7 @@ class Camps:
 
         if arguments.db:
             print "Stopping database on camp%s" % camp_id
-            client = fc.Client(settings.DB_HOST)
+            client = fc.Client(settings.FUNC_DB_HOST)
             self._stop_db(client, camp_id)
             # wait for it to stop
             time.sleep(5)
@@ -181,7 +189,7 @@ class Camps:
 
         if arguments.db:
             print "Starting database on camp%s" % camp_id
-            client = fc.Client(settings.DB_HOST)
+            client = fc.Client(settings.FUNC_DB_HOST)
             self._start_db(client, camp_id)
             # wait for it to start
             time.sleep(5)
@@ -215,7 +223,7 @@ class Camps:
                 raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
 
 
-        client = fc.Client(settings.DB_HOST)
+        client = fc.Client(settings.FUNC_DB_HOST)
         # self._stop_camp_db(client, camp_id)
         rm_db_cmd = "/bin/rm -r %s/%s" % (settings.DB_ROOT, settings.CAMPS_BASENAME + str(camp_id))
         # ensure the db is stopped for this camp
