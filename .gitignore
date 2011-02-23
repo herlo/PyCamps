@@ -5,4 +5,6 @@ settings.py
 *camp*.db
 *.pyc
 build
+dist
 pycamps.egg-info
+MANIFEST
