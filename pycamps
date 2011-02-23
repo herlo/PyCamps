@@ -3,9 +3,9 @@
 import time
 import argparse
 
-from pycamps import camps as c
+from pycamps.camps import *
 
-camps = c.Camps()
+camps = Camps()
 
 def main():
 
