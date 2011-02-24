@@ -1,6 +1,7 @@
 # Main class for pycamps
 
 import os
+import stat
 import sys
 import re
 import time
@@ -110,26 +111,29 @@ class Camps:
         # write the config file out
         # assuming here that the full directory structure is built
         self.web_conf_file = '''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)
+
         file = open(self.web_conf_file, 'w+')
-        file.write('''Alias /%s %s/%s\n''' % (self.campname, self.camppath, settings.WEB_DOCROOT) )
+        if settings.WEB_DELIVERY == "ALIAS":
+            file.write('''Alias /%s %s/%s\n''' % (self.campname, self.camppath, settings.WEB_DOCROOT) )
+        else:
+            file.write(settings.VHOST_CONFIG % {'camp_id': self.camp_id, 'camppath': str(self.camppath)})
+
         file.close()
-
-# originally, I had thought committing the configs for apache was a good idea
-# instead, I've decided that adding the web configs to the .gitignore is better
-
-#    def _push_web_config(self):
-#
-#        # commit it to the git repo and push it
-#        index = self.clone.index
-#        index.add(['''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)])
-#        commit = index.commit('''automated from pycamps: adding web config file''')
-#        self.clone.remotes.origin.push('refs/heads/camp%s:refs/heads/camp%s' % (str(self.camp_id), str(self.camp_id)) )
 
     def _web_symlink_config(self, func_client):
         # do the symbolic link to httpd_config_root
 
         symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTP_CONFIG_DIR, self.campname)
         result = func_client.command.run(symlink_httpd_config)
+
+    def _web_create_log_dir(self, func_client):
+        try:
+            os.mkdir('%s/%s' %(self.camppath, settings.WEB_LOG_DIR))
+            current_permissions = os.stat('%s/%s' %(self.camppath, settings.WEB_LOG_DIR)).st_mode
+            os.chmod('%s/%s' %(self.camppath, settings.WEB_LOG_DIR), current_permissions | stat.S_ISGID )
+            os.chown('%s/%s' %(self.camppath, settings.WEB_LOG_DIR), -1, os.getgid())
+        except OSError, e:
+            pass
 
     def _restart_web(self, func_client):
         # restart the web service
@@ -272,6 +276,7 @@ class Camps:
             web_client = fc.Client(settings.FUNC_WEB_HOST)
             self._web_config()
             self._web_symlink_config(web_client)
+            self._web_create_log_dir(web_client)
             self._restart_web(web_client)
         except CampError, e:
                 self.campdb.delete_camp(self.camp_id)
