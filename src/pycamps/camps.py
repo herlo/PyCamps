@@ -92,10 +92,10 @@ class Camps:
             self.clone.delete_remote(self.clone.remotes.origin)
             # create the origin remote
             self.clone.create_remote('origin', settings.GIT_REMOTE)
-            self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % (settings.CAMPS_BASENAME + str(self.camp_id)) )
+            self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % str(self.camp_id) )
             print "Cloning camp%d web data complete" % self.camp_id
 
-        except NoSuchPathError as e:
+        except NoSuchPathError, e:
             raise CampError("Cannot clone the non-existent directory: %s" % e)
 
     def _web_config(self):
@@ -104,7 +104,7 @@ class Camps:
         # confirm the full path exists, if not, create it
         try:
             os.stat('%s/%s' %(self.camppath, settings.WEB_CONFIG_BASE) )
-        except OSError as e:
+        except OSError, e:
             os.makedirs('%s/%s' %(self.camppath, settings.WEB_CONFIG_BASE), 0775)
 
         # write the config file out
@@ -218,7 +218,7 @@ class Camps:
             if os.getuid() != filestats[4]:
                 if arguments.force == None:
                     raise CampError("""A camp can only be removed by its owner.""")
-        except OSError as e:
+        except OSError, e:
             if arguments.force == None:
                 raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
 
@@ -234,7 +234,7 @@ class Camps:
         os.chdir(settings.CAMPS_ROOT)
         try:
             shutil.rmtree("%s/%s" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
-        except OSError as e:
+        except OSError, e:
             if arguments.force == None:
                 raise CampError(e)
         print "camp%s directory removed" % camp_id
@@ -243,7 +243,10 @@ class Camps:
     def list(self, arguments=None):
         camps = self.campdb.camp_list(arguments.all)
         for c in camps:
-            print "camp%d [ owner: %s, path: %s/camp%d, %s ]" % (c[0], c[3], c[2], c[0], "ACTIVE" if c[9] else "INACTIVE")
+            if c[9]:
+                print "camp%d [ owner: %s, path: %s/camp%d, %s ]" % (c[0], c[3], c[2], c[0], "ACTIVE")
+            else:
+                print "camp%d [ owner: %s, path: %s/camp%d, %s ]" % (c[0], c[3], c[2], c[0], "INACTIVE")
 
     def create(self, arguments):
         """Initializes a new camp within the current user's home directory.  The following occurs:
@@ -270,7 +273,7 @@ class Camps:
             self._web_config()
             self._web_symlink_config(web_client)
             self._restart_web(web_client)
-        except CampError as e:
+        except CampError, e:
                 self.campdb.delete_camp(self.camp_id)
                 #also possibly need to delete the camp db instance
                 raise CampError(e.value)
