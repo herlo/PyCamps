@@ -63,6 +63,20 @@ CAMPS_LV_SIZE='200M'
 # if using RSYNC method, these configs are needed
 
 # web configs
+WEB_DELIVERY='VHOST' #other option is ALIAS
+
+# this is a python heredoc to generate the
+# web config entries for each vhost
+VHOST_CONFIG = """<VirtualHost *:80>
+    ServerAdmin webmaster@camp%(camp_id)d.example.com
+    DocumentRoot %(camppath)s/docroot
+    ServerName camp%(camp_id)d.example.com
+    ServerAlias camp%(camp_id)d
+    ErrorLog %(camppath)s/logs/camp%(camp_id)d-error_log
+    CustomLog %(camppath)s/logs/camp%(camp_id)d-access_log common
+</VirtualHost>
+"""
+
 WEB_CONFIG_BASE='httpd/conf.d'
 WEB_CONFIG_FILE='site.conf'
 WEB_DOCROOT='docroot'
