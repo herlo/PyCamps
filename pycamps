@@ -68,7 +68,7 @@ def main():
     args = p.parse_args()
     try:
         args.func(args)
-    except CampError as e:
+    except CampError, e:
         print e.value
 
 

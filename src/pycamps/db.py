@@ -6,7 +6,7 @@ try:
 except:
     from pysqlite2 import dbapi2 as sqlite
 
-import settings
+import pycamps.settings as settings
 
 class PyCampsDB:
     
