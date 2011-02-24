@@ -126,6 +126,14 @@ class Camps:
         symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTP_CONFIG_DIR, self.campname)
         result = func_client.command.run(symlink_httpd_config)
 
+    def _web_create_log_dir(self, func_client):
+        try:
+            os.mkdir('%s/%s' %(self.camppath, settings.WEB_LOG_DIR))
+            current_permissions = os.stat('%s/%s' %(self.camppath, settings.WEB_LOG_DIR)).st_mode
+            os.chmod('%s/%s' %(self.camppath, settings.WEB_LOG_DIR), current_permissions | stat.S_ISGID )
+            os.chown('%s/%s' %(self.camppath, settings.WEB_LOG_DIR), -1, os.getgid())
+        except OSError, e:
+            pass
 
     def _restart_web(self, func_client):
         # restart the web service
@@ -268,6 +276,7 @@ class Camps:
             web_client = fc.Client(settings.FUNC_WEB_HOST)
             self._web_config()
             self._web_symlink_config(web_client)
+            self._web_create_log_dir(web_client)
             self._restart_web(web_client)
         except CampError, e:
                 self.campdb.delete_camp(self.camp_id)
