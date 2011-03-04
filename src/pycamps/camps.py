@@ -142,14 +142,14 @@ class Camps:
 
     def _start_db(self, func_client, camp_id):
         result = func_client.command.run("/usr/bin/mysqld_multi start %s" % camp_id)
-        time.sleep(5)
+        time.sleep(10)
         result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
         if result[settings.FUNC_DB_HOST][0] != 0:
             raise CampError('Unable to start camp%s, contact the administrator <%s>' % (camp_id, settings.ADMIN_EMAIL))
 
     def _stop_db(self, func_client, camp_id):
         result = func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp_id)
-        time.sleep(5)
+        time.sleep(10)
         result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
         if result[settings.FUNC_DB_HOST][0] != 1:
             raise CampError('Unable to stop camp%s, contact the administrator <%s>' % (camp_id, settings.ADMIN_EMAIL))
@@ -175,8 +175,6 @@ class Camps:
             print "Stopping database on camp%s" % camp_id
             client = fc.Client(settings.FUNC_DB_HOST)
             self._stop_db(client, camp_id)
-            # wait for it to stop
-            time.sleep(5)
             # should actually check that the db is stopped 
             print "camp%s database successfully stopped" % camp_id
 
@@ -195,8 +193,6 @@ class Camps:
             print "Starting database on camp%s" % camp_id
             client = fc.Client(settings.FUNC_DB_HOST)
             self._start_db(client, camp_id)
-            # wait for it to start
-            time.sleep(5)
             print "camp%s database server successfully started" % camp_id
         if arguments.web:
             print "camp%s web server successfully started" % camp_id

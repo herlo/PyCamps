@@ -7,8 +7,7 @@ ADMIN_EMAIL = 'herlo1@gmail.com'
 
 # the root location of all camps
 
-#CAMPS_ROOT = os.environ['HOME']
-CAMPS_ROOT = '/tmp'
+CAMPS_ROOT = '%s/camps' % (os.environ['HOME'])
 
 # the dir where the camp will be stored within the 
 # user's home directory camp will be turned into 
@@ -17,11 +16,11 @@ CAMPS_ROOT = '/tmp'
 CAMPS_BASENAME = 'camp'
 
 # the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
-CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
+CAMPS_DB = '~/Projects/PyCamps/camps.db'
 
 # the path to the git repo to clone, must have an ending /
 
-GIT_ROOT = '/home/clints/Projects/campmaster'
+GIT_ROOT = '~/Projects/campmaster'
 
 # remote Git repository.  Leave this blank to use local repo  #FIXME
 GIT_REMOTE = 'gitolite@camps.skullcandy.com:testing'
