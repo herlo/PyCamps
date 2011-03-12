@@ -1,0 +1,90 @@
+# PyCamps configurations loader
+import os
+
+# pycamps administrator (likely you)
+ADMIN_NAME = 'Clint Savage'
+ADMIN_EMAIL = 'herlo1@gmail.com'
+
+# the root location of all camps
+
+CAMPS_ROOT = '%s/camps' % (os.environ['HOME'])
+
+# the dir where the camp will be stored within the 
+# user's home directory camp will be turned into 
+# /home/user/camp4 for the 4th camp.
+
+CAMPS_BASENAME = 'camp'
+
+# the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
+CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
+
+# the path to the git repo to clone, must have an ending /
+
+PROJECTS = {'magento': {'rcs': 'git', 'local': '/home/clints/Projects/campmaster', 'remote': 'gitolite@camps.skullcandy.com:community'},
+            'wordpress': {'rcs': 'svn', 'remote': 'gitolite@camps.skullcandy.com:wordpress'},
+        }
+
+# remote Git repository.  Leave this blank to use local repo  #FIXME
+#GIT_REMOTE = 'gitolite@camps.skullcandy.com:testing'
+
+# CHOOSE DB TYPE / Only MySQL is available atm
+
+DB = 'MySQL'
+
+# DB INFO
+DB_USER = 'root'
+DB_PASS = ''
+DB_HOST = 'localhost'
+DB_BASE_PORT = 3300
+
+# this is a python heredoc to generate the
+# mysql config entries for each db
+DB_CONFIG = """[mysqld%(camp_id)d]
+datadir = /var/lib/mysql/camp%(camp_id)d
+socket = /var/lib/mysql/camp%(camp_id)d/mysql.sock
+pid-file = /var/run/mysqld/camp%(camp_id)d.pid
+user = mysql
+port = %(port)d
+log = /var/log/mysqld-%(camp_id)d.log"""
+
+# location within where db master and clones will live
+DB_ROOT = '/var/lib/mysql'
+DB_USER = 'mysql'
+DB_GROUP = 'mysql'
+
+# How do we clone the dbs?
+DB_CLONE_METHOD='LVM-SNAP'  # default clone method could be DB_CLONE_METHOD=RSYNC
+#DB_CLONE_METHOD='RSYNC'     # alternate clone method 
+
+# if using LVM-SNAP method, these configs are needed
+CAMPS_VG='db'
+CAMPS_LV='campmaster'
+CAMPS_LV_SIZE='200M'
+
+# if using RSYNC method, these configs are needed
+
+# web configs
+WEB_DELIVERY='VHOST' #other option is ALIAS
+
+# this is a python heredoc to generate the
+# web config entries for each vhost
+VHOST_CONFIG = """<VirtualHost *:80>
+    ServerAdmin webmaster@camp%(camp_id)d.example.com
+    DocumentRoot %(camppath)s/docroot
+    ServerName camp%(camp_id)d.example.com
+    ServerAlias camp%(camp_id)d
+    ErrorLog %(camppath)s/logs/camp%(camp_id)d-error_log
+    CustomLog %(camppath)s/logs/camp%(camp_id)d-access_log common
+</VirtualHost>
+"""
+
+WEB_CONFIG_BASE='httpd/conf.d'
+WEB_CONFIG_FILE='site.conf'
+WEB_DOCROOT='docroot'
+WEB_LOG_DIR='logs'
+
+HTTP_CONFIG_DIR='/etc/httpd/conf.d'
+
+# func settings
+FUNC_DB_HOST = 'x201.egavas.org'
+FUNC_WEB_HOST = 'x201.egavas.org'
