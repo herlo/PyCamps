@@ -1,0 +1,82 @@
+#!/usr/bin/python
+
+import time
+import argparse
+
+from pycamps.campsadmin import *
+
+admin = CampsAdmin()
+
+def main():
+
+    p = argparse.ArgumentParser(
+        description='''Dispatches commands to 
+        manage development project data''',
+    )
+
+    # add a project
+    sp = p.add_subparsers()
+    p_add = sp.add_parser('add', help='add a new project')
+    p_add.add_argument('name', help='project name')
+    p_add.add_argument('desc', help='project description')
+    p_add.add_argument('rcs_remote', metavar='rcs_url', help='url to master code repo')
+    p_add.add_argument('db_lv', metavar='lvm_path', help='logical volume location for master database')
+    p_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
+    p_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
+    p_add.add_argument('--owner', help='project owner, must be valid user')
+    p_add.set_defaults(func=admin.add_project)
+
+#    # list camps
+#    p_list = sp.add_parser('list', help='list all active camps (by default)')
+#    p_list.add_argument('-a', '--all', action='store_true', help='include inactive camps')
+#    p_list.set_defaults(func=camps.list)
+#
+#    # remove a camp
+#    p_rm = sp.add_parser('rm', help='remove a camp')
+#    p_rm.add_argument('id', help='camp #')
+#    p_rm.add_argument('-f', '--force', action='store_true', help='ignore checks, remove anyway')
+#    p_rm.set_defaults(func=camps.remove)
+#
+#    # start camp components
+#    p_start = sp.add_parser('start', help='start a camp component')
+#    p_start.add_argument('-i', '--id', metavar='id', help='camp id')
+#    p_start.add_argument('--db', help='start database', action='store_true')
+#    p_start.add_argument('--web', help='start web server', action='store_true')
+#    p_start.add_argument('-a', '--all', help='start db and web', action='store_true')
+#    p_start.set_defaults(func=camps.start)
+#
+#    # stop camp components
+#    p_stop = sp.add_parser('stop', help='stop a camp component')
+#    p_stop.add_argument('-i', '--id', metavar='id', help='camp id')
+#    p_stop.add_argument('--db', help='stop databae', action='store_true')
+#    p_stop.add_argument('--web', help='stop web server', action='store_true')
+#    p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
+#    p_stop.set_defaults(func=camps.stop)
+#
+#    # restart camp components
+#    p_stop = sp.add_parser('restart', help='restart camp component')
+#    p_stop.add_argument('-i', '--id', metavar='id', help='camp id')
+#    p_stop.add_argument('--db', help='restart databae', action='store_true')
+#    p_stop.add_argument('--web', help='restart web server', action='store_true')
+#    p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
+#    p_stop.set_defaults(func=camps.restart)
+
+#    # refresh camp components
+#    p_refresh = sp.add_parser('refresh', help='refresh camp component')
+#    p_refresh.add_argument('-i', '--id', metavar='id', help='camp id')
+#    p_refresh.add_argument('--db', help='stop db', action='store_true')
+#    p_refresh.add_argument('--web', help='stop web server', action='store_true')
+#    p_refresh.add_argument('-a', '--all', help='stop all', action='store_true')
+#    p_refresh.set_defaults(func=camps.refresh)
+
+    #print p_list
+
+    args = p.parse_args()
+    try:
+        args.func(args)
+    except CampError, e:
+        print e.value
+
+
+if __name__ == "__main__":
+    main()
