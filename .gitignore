@@ -1,4 +1,5 @@
 settings.py
+MANIFEST
 .*.sw*
 *.bak
 *.orig
@@ -6,5 +7,5 @@ settings.py
 *.pyc
 build
 dist
+docs
 pycamps.egg-info
-MANIFEST
