@@ -12,15 +12,9 @@ from git.errors import InvalidGitRepositoryError, NoSuchPathError, GitCommandErr
 
 import func.overlord.client as fc
 
-from pycamps.db import *
-import pycamps.settings as settings
-
-class CampError(Exception):
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        repr(self.value)
+from pycamps.config.campsdb import *
+from pycamps.campserror import *
+import pycamps.config.settings as settings
 
 
 class Camps:
@@ -40,7 +34,7 @@ class Camps:
         #print arguments
     
         self.login = os.getenv('LOGNAME')
-        self.campdb = PyCampsDB()
+        self.campdb = CampsDB()
 
     def _clone_db_lvm_snap(self, client):
         """Clones the campmaster db into a particular camp db 
@@ -264,7 +258,7 @@ class Camps:
             self.camppath = """%s/%s""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(self.camp_id) )
             self.basecamp = """%s/%s""" % (settings.CAMPS_ROOT, settings.GIT_ROOT)
             self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
-            print "== Creating camp%d ==\n" % self.camp_id
+            print "== Creating camp%d ==" % self.camp_id
             db_client = fc.Client(settings.FUNC_DB_HOST)
             self._clone_db(db_client)
             self._start_db(db_client, self.camp_id)

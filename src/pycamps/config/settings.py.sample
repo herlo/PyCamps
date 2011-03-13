@@ -18,15 +18,6 @@ CAMPS_BASENAME = 'camp'
 # the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
 CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
 
-# the path to the git repo to clone, must have an ending /
-
-PROJECTS = {'magento': {'rcs': 'git', 'local': '/home/clints/Projects/campmaster', 'remote': 'gitolite@camps.skullcandy.com:community'},
-            'wordpress': {'rcs': 'svn', 'remote': 'gitolite@camps.skullcandy.com:wordpress'},
-        }
-
-# remote Git repository.  Leave this blank to use local repo  #FIXME
-#GIT_REMOTE = 'gitolite@camps.skullcandy.com:testing'
-
 # CHOOSE DB TYPE / Only MySQL is available atm
 
 DB = 'MySQL'
