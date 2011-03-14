@@ -139,14 +139,14 @@ class Camps:
         time.sleep(10)
         result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
         if result[settings.FUNC_DB_HOST][0] != 0:
-            raise CampError('Unable to start camp%s, contact the administrator <%s>' % (camp_id, settings.ADMIN_EMAIL))
+            raise CampError("""Unable to start db for camp%s, contact the administrator '%s' <%s>""" % (camp_id, settings.ADMIN_NAME, settings.ADMIN_EMAIL))
 
     def _stop_db(self, func_client, camp_id):
         result = func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp_id)
         time.sleep(10)
         result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
         if result[settings.FUNC_DB_HOST][0] != 1:
-            raise CampError('Unable to stop camp%s, contact the administrator <%s>' % (camp_id, settings.ADMIN_EMAIL))
+            raise CampError("""Unable to stop db camp%s, contact the administrator '%s' <%s>""" % (camp_id, settings.ADMIN_NAME, settings.ADMIN_EMAIL))
 
     def _get_camp_id(self):
         """Attempt to obtain the camp_id by looking at the basename of the path.  
