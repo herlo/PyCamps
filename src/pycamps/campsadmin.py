@@ -35,8 +35,23 @@ class CampsAdmin:
             self.owner = arguments.owner
 
         self.proj_id = self.admindb.create_project(arguments.name, arguments.desc, arguments.web, 
-                arguments.rcs_remote, arguments.db, arguments.db_lv, self.owner)
+                arguments.rcs_remote, arguments.db, arguments.db_lv, arguments.db_lv_snap, self.owner)
         print "== Adding %s to project list ==" % arguments.name
 
         pass
 
+    def list_projects(self, arguments=None):
+        projects = self.admindb.project_list(arguments.all)
+        print """== Project List =="""
+        for p in projects:
+            if p[10]:
+                print """Project: %s '%s' (status: %s, owner: %s)""" % (p[1], p[2], 'ACTIVE', p[8])
+            else:
+                print """Project: %s '%s' (status: %s, owner: %s)""" % (p[1], p[2], 'INACTIVE', p[8])
+
+            if arguments.long:
+                print """  [remote: %s, webserver: %s, database server: %s, database location: %s, snap size: %s]""" % (p[4], p[3], p[5], p[6], p[7])
+                print 
+
+        if not arguments.long:
+            print

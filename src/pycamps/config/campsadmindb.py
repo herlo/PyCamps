@@ -6,6 +6,7 @@ try:
 except:
     from pysqlite2 import dbapi2 as sqlite
 
+from pycamps.campserror import *
 import pycamps.config.settings as settings
 
 class CampsAdminDB:
@@ -20,19 +21,24 @@ class CampsAdminDB:
     def _create_tables(self):
         c = self.conn.cursor()
         c.execute('''CREATE TABLE projects (id INTEGER PRIMARY KEY, name varchar(50) UNIQUE, description varchar(50), 
-                    web_server varchar(50), rcs_remote TEXT, db_server varchar(50), db_lv TEXT, 
+                    web_server varchar(50), rcs_remote TEXT, db_server varchar(50), db_lv TEXT, db_lv_snap_size varchar(10), 
                     owner VARCHAR(50), created DATE, active BOOLEAN)''') 
-        c.execute('''CREATE TRIGGER insert_projects_createdNow AFTER INSERT ON projects BEGIN UPDATE projects SET created = DATETIME('NOW') WHERE rowid = new.rowid; END''')
+        c.execute('''CREATE TRIGGER insert_projects_createdNow AFTER INSERT ON projects BEGIN UPDATE projects SET created = DATETIME('NOW'), active = 1 WHERE rowid = new.rowid; END''')
         self.conn.commit()
         c.close()
 
-    def create_project(self, name, description, web_server, rcs_remote, db_server, db_lv, owner):
-        c = self.conn.cursor()
-        c.execute("""INSERT INTO projects (name, description, web_server, rcs_remote, db_server, db_lv, owner) 
-            values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (name, description, web_server, rcs_remote, db_server, db_lv, owner))
-        proj_id = c.execute("""select max(id) from projects""").fetchone()[0]
-        self.conn.commit()
-        c.close()
+    def create_project(self, name, description, web_server, rcs_remote, db_server, db_lv, db_lv_snap_size, owner):
+        try:
+            c = self.conn.cursor()
+            c.execute("""INSERT INTO projects (name, description, web_server, rcs_remote, 
+                db_server, db_lv, db_lv_snap_size, owner) 
+                values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', 
+                '%s')""" % (name, description, web_server, rcs_remote, db_server, db_lv, db_lv_snap_size, owner))
+            proj_id = c.execute("""select max(id) from projects""").fetchone()[0]
+            self.conn.commit()
+            c.close()
+        except sqlite.IntegrityError, e:
+            raise CampError("""Project %s already exists""" % name)
         return proj_id
 
     def activate_project(self, name):

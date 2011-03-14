@@ -21,16 +21,18 @@ def main():
     p_add.add_argument('desc', help='project description')
     p_add.add_argument('rcs_remote', metavar='rcs_url', help='url to master code repo')
     p_add.add_argument('db_lv', metavar='lvm_path', help='logical volume location for master database')
+    p_add.add_argument('db_lv_snap', metavar='size', help='logical volume snapshot size')
     p_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
     p_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
-    p_add.add_argument('--owner', help='project owner, must be valid user')
+    p_add.add_argument('--owner', metavar='owner', help='project owner, default is current user')
     p_add.set_defaults(func=admin.add_project)
 
-#    # list camps
-#    p_list = sp.add_parser('list', help='list all active camps (by default)')
-#    p_list.add_argument('-a', '--all', action='store_true', help='include inactive camps')
-#    p_list.set_defaults(func=camps.list)
-#
+    # list projects
+    p_list = sp.add_parser('list', help='list all active projects (by default)')
+    p_list.add_argument('-a', '--all', action='store_true', help='include inactive projects')
+    p_list.add_argument('-l', '--long', action='store_true', help='long list with detail')
+    p_list.set_defaults(func=admin.list_projects)
+
 #    # remove a camp
 #    p_rm = sp.add_parser('rm', help='remove a camp')
 #    p_rm.add_argument('id', help='camp #')
