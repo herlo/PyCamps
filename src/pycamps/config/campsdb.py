@@ -20,15 +20,17 @@ class CampsDB:
 
     def _create_tables(self):
         c = self.conn.cursor()
-        c.execute('''CREATE TABLE camps (id INTEGER PRIMARY KEY, description varchar(50), path TEXT, owner VARCHAR(50), db_user VARCHAR(25), db_pass VARCHAR(25), db_host VARCHAR(50), db_port INTEGER, created DATE, active BOOLEAN)''') 
-        c.execute('''CREATE TRIGGER insert_camps_createdNow AFTER INSERT ON camps BEGIN UPDATE camps SET created = DATETIME('NOW') WHERE rowid = new.rowid; END''')
+        c.execute('''CREATE TABLE camps (id INTEGER PRIMARY KEY, project VARCHAR(50), description VARCHAR(50), 
+                path TEXT, owner VARCHAR(50), db_host VARCHAR(50), db_port INTEGER, created DATE, active BOOLEAN)''') 
+        c.execute('''CREATE TRIGGER insert_camps_createdNow AFTER INSERT ON camps BEGIN UPDATE camps 
+                SET created = DATETIME('NOW') WHERE rowid = new.rowid; END''')
         self.conn.commit()
         c.close()
 
-    def create_camp(self, description, path, owner, db_user=None, db_pass=None, db_host=None):
+    def create_camp(self, project, description, path, owner, db_host):
         c = self.conn.cursor()
-        c.execute('''INSERT INTO camps (description, path, owner, db_user, db_pass, db_host, active) 
-            values ('%s', '%s', '%s', '%s', '%s', '%s', %d)''' % (description, path, owner, db_user, db_pass, db_host, 1))
+        c.execute("""INSERT INTO camps (project, description, path, owner, db_host) 
+            values ('%s', '%s', '%s', '%s', '%s')""" % (project, description, path, owner, db_host))
         camp_id = c.execute('''select max(id) from camps''').fetchone()[0]
         c.execute('''UPDATE camps set db_port = %d where id = %d''' %((settings.DB_BASE_PORT + camp_id), camp_id))
         self.conn.commit()
