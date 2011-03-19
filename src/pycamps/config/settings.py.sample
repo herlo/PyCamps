@@ -2,8 +2,10 @@
 import os
 
 # pycamps administrator (likely you)
-ADMIN_NAME = 'Clint Savage'
-ADMIN_EMAIL = 'herlo1@gmail.com'
+ADMINS = (
+    ('Andrew Spencer','ags', 'ags.github@trucemail.com'),
+    ('Clint Savage', 'clints', 'clint@purpleatom.com'),
+)
 
 # the root location of all camps
 
@@ -18,13 +20,15 @@ CAMPS_BASENAME = 'camp'
 # the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
 CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
 
+TESTREPO_PATH = '/tmp/testrepo'
+
+# func settings
+FUNC_DB_HOST = 'x201.egavas.org'
+FUNC_WEB_HOST = 'x201.egavas.org'
+
 # CHOOSE DB TYPE / Only MySQL is available atm
 
 DB = 'MySQL'
-
-# DB INFO
-DB_USER = 'root'
-DB_PASS = ''
 DB_HOST = 'localhost'
 DB_BASE_PORT = 3300
 
@@ -42,17 +46,6 @@ log = /var/log/mysqld-%(camp_id)d.log"""
 DB_ROOT = '/var/lib/mysql'
 DB_USER = 'mysql'
 DB_GROUP = 'mysql'
-
-# How do we clone the dbs?
-DB_CLONE_METHOD='LVM-SNAP'  # default clone method could be DB_CLONE_METHOD=RSYNC
-#DB_CLONE_METHOD='RSYNC'     # alternate clone method 
-
-# if using LVM-SNAP method, these configs are needed
-CAMPS_VG='db'
-CAMPS_LV='campmaster'
-CAMPS_LV_SIZE='200M'
-
-# if using RSYNC method, these configs are needed
 
 # web configs
 WEB_DELIVERY='VHOST' #other option is ALIAS
@@ -73,9 +66,9 @@ WEB_CONFIG_BASE='httpd/conf.d'
 WEB_CONFIG_FILE='site.conf'
 WEB_DOCROOT='docroot'
 WEB_LOG_DIR='logs'
+# all developers need to be in this group
+# the httpd process needs to as well
+WEB_GROUP='apache'
 
 HTTP_CONFIG_DIR='/etc/httpd/conf.d'
 
-# func settings
-FUNC_DB_HOST = 'x201.egavas.org'
-FUNC_WEB_HOST = 'x201.egavas.org'
