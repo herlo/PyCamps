@@ -97,27 +97,13 @@ class Camps:
             repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
             # works to here, need to adjust the remote url
 
-            camp_url = """%s/%s""" % (remote_url.split('/')[0], self.campname)
-            print "camp_url: '%s'" % camp_url
-            repo.create_remote('origin', camp_url)
+            self.camp_url = """%s/%s""" % (remote_url.split('/')[0], self.campname)
+            repo.create_remote('origin', self.camp_url)
             repo.remotes['origin'].push('refs/heads/master:refs/heads/master')
+            self.campdb.set_remote(self.camp_id, self.camp_url)
         except AssertionError, e:
             shutil.rmtree('%s' % camppath)
             raise CampError(e)
-
-#            # clone the blank repo
-#            self.clone = repo.clone(self.camppath)
-#            # create a campX branch
-#            branch = self.clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
-#            # checkout the campX branch
-#            self.camp_repo = self.clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
-#            # if the origin exists, remove it (we may not need this in the future)
-#            self.clone.delete_remote(self.clone.remotes.origin)
-#            # create the origin remote
-#            self.clone.create_remote('origin', settings.GIT_REMOTE)
-#            self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % str(self.camp_id) )
-#            print "Cloning camp%d web data complete" % self.camp_id
-
 
     def _web_config(self):
         """configure the camp to work with the web server.  Default server is apache"""
@@ -260,13 +246,25 @@ class Camps:
         print "camp%s directory removed" % camp_id
         self.campdb.deactivate_camp(camp_id)
 
-    def list(self, arguments=None):
-        camps = self.campdb.camp_list(arguments.all)
+
+    def list(self, args=None):
+        camps = self.campdb.camp_list(args.all, args.id)
+        print """== Camps List =="""
         for c in camps:
-            if c[9]:
-                print "camp%d [ owner: %s, path: %s/camp%d, %s ]" % (c[0], c[3], c[2], c[0], "ACTIVE")
+            if c[2] == 'None' or c[2] == None:
+                if c[9]:
+                    print "camp%d 'no description' (project: %s, owner: %s) %s" % (c[0], c[1], c[4], "ACTIVE")
+                else:
+                    print "camp%d 'no description' (project: %s, owner: %s) %s" % (c[0], c[1], c[4], "INACTIVE")
             else:
-                print "camp%d [ owner: %s, path: %s/camp%d, %s ]" % (c[0], c[3], c[2], c[0], "INACTIVE")
+                if c[8]:
+                    print "camp%d '%s' (project: %s, owner: %s) %s" % (c[0], c[2], c[1], c[4], "ACTIVE")
+                else:
+                    print "camp%d '%s' (project: %s, owner: %s) %s" % (c[0], c[2], c[1], c[4], "INACTIVE")
+
+            if args.long:
+                print """\t[path: %s, remote: %s, db host: %s, db port: %d]""" % (c[3], c[5], c[6], c[7])
+                print
 
     def create(self, args):
         """Initializes a new camp within the current user's home directory.  The following occurs:
@@ -279,9 +277,10 @@ class Camps:
         creates symbolic link to static data (images)
         """
 
+        self.project = args.proj
+
         try:
             self.camp_id = self.campdb.create_camp(args.proj, args.desc, settings.CAMPS_ROOT, self.login, settings.DB_HOST)
-            self.project = args.proj
             self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
             self.camppath = """%s/%s""" % (settings.CAMPS_ROOT, self.campname )
             print "== Creating camp%d ==" % self.camp_id
@@ -296,12 +295,13 @@ class Camps:
             # clone and configure web
             web_client = fc.Client(settings.FUNC_WEB_HOST)
             self._web_config()
+            self._web_create_log_dir(web_client)
 
             # load app specific hooks for web
             self._web_symlink_config(web_client)
-            self._web_create_log_dir(web_client)
 
             self._restart_web(web_client)
+            self.campdb.activate_camp(self.camp_id)
         except CampError, e:
                 self.campdb.delete_camp(self.camp_id)
                 #also possibly need to delete the camp db instance

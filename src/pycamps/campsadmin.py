@@ -113,9 +113,9 @@ class CampsAdmin:
         print """== Project List =="""
         for p in projects:
             if p[10]:
-                print """Project: %s '%s' (status: %s, owner: %s)""" % (p[1], p[2], 'ACTIVE', p[8])
+                print """Project: %s '%s' (owner: %s) %s""" % (p[1], p[2], p[8], 'ACTIVE')
             else:
-                print """Project: %s '%s' (status: %s, owner: %s)""" % (p[1], p[2], 'INACTIVE', p[8])
+                print """Project: %s '%s' (owner: %s) %s""" % (p[1], p[2], p[8], 'INACTIVE')
 
             if arguments.long:
                 print """  [remote: %s, webserver: %s, database server: %s, master db: %s, snap size: %s]""" % (p[4], p[3], p[5], p[6], p[7])
