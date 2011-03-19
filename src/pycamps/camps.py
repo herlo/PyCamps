@@ -1,6 +1,7 @@
 # Main class for pycamps
 
 import os
+import grp
 import stat
 import sys
 import re
@@ -13,6 +14,7 @@ from git.errors import InvalidGitRepositoryError, NoSuchPathError, GitCommandErr
 import func.overlord.client as fc
 
 from pycamps.config.campsdb import *
+from pycamps.config.campsadmindb import *
 from pycamps.campserror import *
 import pycamps.config.settings as settings
 
@@ -35,15 +37,15 @@ class Camps:
     
         self.login = os.getenv('LOGNAME')
         self.campdb = CampsDB()
+        self.admindb = CampsAdminDB()
 
-    def _clone_db_lvm_snap(self, client):
+    def _clone_db_lvm_snap(self, client, lv_infos):
         """Clones the campmaster db into a particular camp db 
         using logical volume snapshots"""
         
-        lv_snapshot_cmd = "lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (settings.CAMPS_LV_SIZE, settings.CAMPS_BASENAME + str(self.camp_id), settings.CAMPS_VG, settings.CAMPS_LV)
+        lv_snapshot_cmd = "/sbin/lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (lv_infos['snap'], settings.CAMPS_BASENAME + str(self.camp_id), lv_infos['vg'], lv_infos['lv'])
         client.command.run(lv_snapshot_cmd)
         print "camp%d database snapshot complete" % self.camp_id
-
 
     def _clone_db_rsync(self, client):
         """Clones the campmaster db into a particular camp db 
@@ -65,33 +67,57 @@ class Camps:
         """Clones the campmaster db into a particular camp db
         and adds appropriate configs into the database itself"""
 
-        # determine the method of cloning
-        if settings.DB_CLONE_METHOD == "RSYNC":
-            self._clone_db_rsync(client)
-        else:
-            self._clone_db_lvm_snap(client)
+        lv_infos = self.admindb.get_lv_info(self.project)
+        self._clone_db_lvm_snap(client, lv_infos)
         self._chown_db_path(client)
         self._add_db_config(client)
 
     def _clone_docroot(self):
-        try:
-            # setup the blank repo 
-            repo = git.Repo(settings.GIT_ROOT)
-            # clone the blank repo
-            self.clone = repo.clone(self.camppath)
-            # create a campX branch
-            branch = self.clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
-            # checkout the campX branch
-            self.camp_repo = self.clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
-            # if the origin exists, remove it (we may not need this in the future)
-            self.clone.delete_remote(self.clone.remotes.origin)
-            # create the origin remote
-            self.clone.create_remote('origin', settings.GIT_REMOTE)
-            self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % str(self.camp_id) )
-            print "Cloning camp%d web data complete" % self.camp_id
 
-        except NoSuchPathError, e:
-            raise CampError("Cannot clone the non-existent directory: %s" % e)
+        remote_url = self.admindb.get_remote(self.project)
+
+        try: 
+            os.stat('%s' % self.camppath)
+            raise CampError("""Camp directory '%s' already exists, please remove and try again""" % self.camppath)
+        except OSError, e:
+            os.makedirs('%s' % self.camppath, 0775)
+            # there's a bug somewhere that won't let me do 2775 above
+            # these two lines fix that
+            current_permissions = os.stat('%s' % self.camppath).st_mode
+            os.chmod('%s' % self.camppath, current_permissions | stat.S_ISGID )
+            gid = grp.getgrnam(settings.WEB_GROUP).gr_gid
+            os.chown('%s' %self.camppath, -1, gid)
+
+        try:
+            gitrepo = git.Git(self.camppath)
+            cmd = ['git', 'init']
+            result = git.Git.execute(gitrepo, cmd)
+            repo = git.Repo(self.camppath)
+            repo.create_remote(self.project, remote_url)
+            repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
+            # works to here, need to adjust the remote url
+
+            camp_url = """%s/%s""" % (remote_url.split('/')[0], self.campname)
+            print "camp_url: '%s'" % camp_url
+            repo.create_remote('origin', camp_url)
+            repo.remotes['origin'].push('refs/heads/master:refs/heads/master')
+        except AssertionError, e:
+            shutil.rmtree('%s' % camppath)
+            raise CampError(e)
+
+#            # clone the blank repo
+#            self.clone = repo.clone(self.camppath)
+#            # create a campX branch
+#            branch = self.clone.create_head(settings.CAMPS_BASENAME + str(self.camp_id))
+#            # checkout the campX branch
+#            self.camp_repo = self.clone.heads[settings.CAMPS_BASENAME + str(self.camp_id)].checkout()
+#            # if the origin exists, remove it (we may not need this in the future)
+#            self.clone.delete_remote(self.clone.remotes.origin)
+#            # create the origin remote
+#            self.clone.create_remote('origin', settings.GIT_REMOTE)
+#            self.clone.remotes.origin.pull('refs/heads/master:refs/heads/camp%s' % str(self.camp_id) )
+#            print "Cloning camp%d web data complete" % self.camp_id
+
 
     def _web_config(self):
         """configure the camp to work with the web server.  Default server is apache"""
@@ -242,7 +268,7 @@ class Camps:
             else:
                 print "camp%d [ owner: %s, path: %s/camp%d, %s ]" % (c[0], c[3], c[2], c[0], "INACTIVE")
 
-    def create(self, arguments):
+    def create(self, args):
         """Initializes a new camp within the current user's home directory.  The following occurs:
         
         git clone -b campX origin/master #clones master branch 
@@ -254,25 +280,33 @@ class Camps:
         """
 
         try:
-            self.camp_id = self.campdb.create_camp(arguments.desc, settings.CAMPS_ROOT, self.login, settings.DB_USER, settings.DB_PASS, settings.DB_HOST)
-            self.camppath = """%s/%s""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(self.camp_id) )
-            self.basecamp = """%s/%s""" % (settings.CAMPS_ROOT, settings.GIT_ROOT)
+            self.camp_id = self.campdb.create_camp(args.proj, args.desc, settings.CAMPS_ROOT, self.login, settings.DB_HOST)
+            self.project = args.proj
             self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
+            self.camppath = """%s/%s""" % (settings.CAMPS_ROOT, self.campname )
             print "== Creating camp%d ==" % self.camp_id
             db_client = fc.Client(settings.FUNC_DB_HOST)
             self._clone_db(db_client)
+
+            # load app specific hooks for db
+ 
             self._start_db(db_client, self.camp_id)
             self._clone_docroot()
+
+            # clone and configure web
             web_client = fc.Client(settings.FUNC_WEB_HOST)
             self._web_config()
+
+            # load app specific hooks for web
             self._web_symlink_config(web_client)
             self._web_create_log_dir(web_client)
+
             self._restart_web(web_client)
         except CampError, e:
                 self.campdb.delete_camp(self.camp_id)
                 #also possibly need to delete the camp db instance
                 raise CampError(e.value)
 
-    def test(self, arguments):
+    def test(self, args):
         print "Running test"
-        print str(arguments)
+        print str(args)
