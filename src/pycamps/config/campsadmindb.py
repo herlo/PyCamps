@@ -115,7 +115,8 @@ class CampsAdminDB():
 
     def get_lv_info(self, name):
         c = self.conn.cursor()
-        r = c.execute("""select db_lv, db_lv_snap_size from projects where name = '%s'""" % name)
+        sql = """select db_lv, db_lv_snap_size from projects where name = '%s'""" % name
+        r = c.execute(sql)
         lvm, snap = r.fetchone()[0:]
         vg, lv = lvm.split('/')[2:]
         c.close()
