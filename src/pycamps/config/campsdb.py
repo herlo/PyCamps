@@ -75,6 +75,14 @@ class CampsDB:
         c.close()
         return camps
 
+    def get_camp_info(self, camp_id):
+        c = self.conn.cursor()
+        info_sql = """SELECT project, path, owner, db_port from camps where id = '%d'""" % camp_id
+        result = c.execute(info_sql)
+        proj, path, owner, db_port = result.fetchone()
+        c.close()
+        return {'proj': proj, 'path': path, 'owner': owner, 'db_port': db_port} 
+
 def main():                         
     camp_db = PyCampsDB()
     infos = camp_db.create_camp('test camp', '/home', 'clints', 'test', 'test', 'localhost')

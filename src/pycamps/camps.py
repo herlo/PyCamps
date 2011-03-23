@@ -1,7 +1,6 @@
 # Main class for pycamps
 
 import os
-import grp
 import stat
 import sys
 import re
@@ -11,13 +10,12 @@ import shutil
 import git
 from git.errors import InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
-import func.overlord.client as fc
-
+import pycamps.config.settings as settings
 from pycamps.config.campsdb import *
 from pycamps.config.projectsdb import *
 from pycamps.campserror import *
-import pycamps.config.settings as settings
-
+from pycamps.contrib.web import Web
+from pycamps.contrib.db import DB
 
 class Camps:
     """
@@ -38,127 +36,6 @@ class Camps:
         self.login = os.getenv('LOGNAME')
         self.campdb = CampsDB()
         self.projdb = ProjectsDB()
-
-    def _clone_db_lvm_snap(self, client, lv_infos):
-        """Clones the campmaster db into a particular camp db 
-        using logical volume snapshots"""
-        
-        lv_snapshot_cmd = "/sbin/lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (lv_infos['snap'], settings.CAMPS_BASENAME + str(self.camp_id), lv_infos['vg'], lv_infos['lv'])
-        client.command.run(lv_snapshot_cmd)
-        print "camp%d database snapshot complete" % self.camp_id
-
-    def _clone_db_rsync(self, client):
-        """Clones the campmaster db into a particular camp db 
-        using logical volume snapshots"""
-
-        rsync_cmd = "/usr/bin/rsync -a %s/%smaster/* %s/%s" % (settings.DB_ROOT, settings.CAMPS_BASENAME, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
-        client.command.run(rsync_cmd)
-
-    def _chown_db_path(self, client):
-        chown_cmd = "/bin/chown -R %s.%s %s/%s" % (settings.DB_USER, settings.DB_GROUP, settings.DB_ROOT, settings.CAMPS_BASENAME + str(self.camp_id))
-        client.command.run(chown_cmd)
-
-    def _add_db_config(self, client):
-        mysql_config = "echo '\n%s\n' >> /etc/my.cnf" % (settings.DB_CONFIG % {'camp_id': self.camp_id, 'port': (settings.DB_BASE_PORT + self.camp_id)})
-        client.command.run(mysql_config)
-        print "camp%d database configured" % self.camp_id
-
-    def _clone_db(self, client):
-        """Clones the campmaster db into a particular camp db
-        and adds appropriate configs into the database itself"""
-
-        lv_infos = self.admindb.get_lv_info(self.project)
-        self._clone_db_lvm_snap(client, lv_infos)
-        self._chown_db_path(client)
-        self._add_db_config(client)
-
-    def _clone_docroot(self):
-
-        remote_url = self.admindb.get_remote(self.project)
-
-        try: 
-            os.stat('%s' % self.camppath)
-            raise CampError("""Camp directory '%s' already exists, please remove and try again""" % self.camppath)
-        except OSError, e:
-            os.makedirs('%s' % self.camppath, 0775)
-            # there's a bug somewhere that won't let me do 2775 above
-            # these two lines fix that
-            current_permissions = os.stat('%s' % self.camppath).st_mode
-            os.chmod('%s' % self.camppath, current_permissions | stat.S_ISGID )
-            gid = grp.getgrnam(settings.WEB_GROUP).gr_gid
-            os.chown('%s' %self.camppath, -1, gid)
-
-        try:
-            gitrepo = git.Git(self.camppath)
-            cmd = ['git', 'init']
-            result = git.Git.execute(gitrepo, cmd)
-            repo = git.Repo(self.camppath)
-            repo.create_remote(self.project, remote_url)
-            repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
-            # works to here, need to adjust the remote url
-
-            self.camp_url = """%s/%s""" % (remote_url.split('/')[0], self.campname)
-            repo.create_remote('origin', self.camp_url)
-            repo.remotes['origin'].push('refs/heads/master:refs/heads/master')
-            self.campdb.set_remote(self.camp_id, self.camp_url)
-        except AssertionError, e:
-            shutil.rmtree('%s' % camppath)
-            raise CampError(e)
-
-    def _web_config(self):
-        """configure the camp to work with the web server.  Default server is apache"""
-
-        # confirm the full path exists, if not, create it
-        try:
-            os.stat('%s/%s' %(self.camppath, settings.WEB_CONFIG_BASE) )
-        except OSError, e:
-            os.makedirs('%s/%s' %(self.camppath, settings.WEB_CONFIG_BASE), 0775)
-
-        # write the config file out
-        # assuming here that the full directory structure is built
-        self.web_conf_file = '''%s/%s/%s''' % (self.camppath, settings.WEB_CONFIG_BASE, settings.WEB_CONFIG_FILE)
-
-        file = open(self.web_conf_file, 'w+')
-        if settings.WEB_DELIVERY == "ALIAS":
-            file.write('''Alias /%s %s/%s\n''' % (self.campname, self.camppath, settings.WEB_DOCROOT) )
-        else:
-            file.write(settings.VHOST_CONFIG % {'camp_id': self.camp_id, 'camppath': str(self.camppath)})
-
-        file.close()
-
-    def _web_symlink_config(self, func_client):
-        # do the symbolic link to httpd_config_root
-
-        symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTP_CONFIG_DIR, self.campname)
-        result = func_client.command.run(symlink_httpd_config)
-
-    def _web_create_log_dir(self, func_client):
-        try:
-            os.mkdir('%s/%s' %(self.camppath, settings.WEB_LOG_DIR))
-            current_permissions = os.stat('%s/%s' %(self.camppath, settings.WEB_LOG_DIR)).st_mode
-            os.chmod('%s/%s' %(self.camppath, settings.WEB_LOG_DIR), current_permissions | stat.S_ISGID )
-            os.chown('%s/%s' %(self.camppath, settings.WEB_LOG_DIR), -1, os.getgid())
-        except OSError, e:
-            pass
-
-    def _restart_web(self, func_client):
-        # restart the web service
-        web_restart_cmd = '''service httpd restart'''
-        result = func_client.command.run(web_restart_cmd)
-
-    def _start_db(self, func_client, camp_id):
-        result = func_client.command.run("/usr/bin/mysqld_multi start %s" % camp_id)
-        time.sleep(10)
-        result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
-        if result[settings.FUNC_DB_HOST][0] != 0:
-            raise CampError("""Unable to start db for camp%s, contact the administrator '%s' <%s>""" % (camp_id, settings.ADMIN_NAME, settings.ADMIN_EMAIL))
-
-    def _stop_db(self, func_client, camp_id):
-        result = func_client.command.run("/usr/bin/mysqld_multi stop %s" % camp_id)
-        time.sleep(10)
-        result = func_client.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
-        if result[settings.FUNC_DB_HOST][0] != 1:
-            raise CampError("""Unable to stop db camp%s, contact the administrator '%s' <%s>""" % (camp_id, settings.ADMIN_NAME, settings.ADMIN_EMAIL))
 
     def _get_camp_id(self):
         """Attempt to obtain the camp_id by looking at the basename of the path.  
@@ -271,6 +148,25 @@ class Camps:
                 print """\t[path: %s, remote: %s, db host: %s, db port: %d]""" % (c[3], c[5], c[6], c[7])
                 print
 
+    def _create_db(self):
+
+       self.db = DB(self.project, self.camp_id)
+
+       lv_info = self.projdb.get_lv_info(self.project)
+       self.db.clone_db(lv_info)
+
+    def _create_web(self):
+
+        self.web = Web(self.project, self.camp_id)
+        master_url = self.projdb.get_remote(self.project)
+        camp_info = self.campdb.get_camp_info(self.camp_id)
+        camp_url = self.web.clone_docroot(master_url, camp_info)
+        self.campdb.set_remote(self.camp_id, camp_url)
+
+        self.web.create_config()
+        self.web.create_symlink_config()
+        self.web.create_log_dir()
+
     def create(self, args):
         """Initializes a new camp within the current user's home directory.  The following occurs:
         
@@ -278,12 +174,14 @@ class Camps:
         sets the campname value
         sets the camppath value
         creates new snapshot from live db
-        updates any needed database configs
-        starts database
+        updates any needed database configs (db hook)
+        starts database (db hook)
 
         clones web docroot from master repo
-
-        creates symbolic link to static data (images)
+        creates configuration file for web server virtual host (web hook)
+        creates log dir and files with proper perms (web hook)
+        creates symbolic link to static data (app hook)
+        starts web server (web hook)
         """
 
         self.project = args.proj
@@ -293,24 +191,33 @@ class Camps:
             self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
             self.camppath = """%s/%s""" % (settings.CAMPS_ROOT, self.campname )
             print "== Creating camp%d ==" % self.camp_id
-            db_client = fc.Client(settings.FUNC_DB_HOST)
-            self._clone_db(db_client)
+
+            # clone db lv
+            self._create_db()
 
             # load app specific hooks for db
- 
-            self._start_db(db_client, self.camp_id)
-            self._clone_docroot()
+            self.db.hooks_pre()
+
+            # start db
+            self.db.start_db()
+
+            # load app specific hooks for db
+            self.db.hooks_post()
 
             # clone and configure web
-            web_client = fc.Client(settings.FUNC_WEB_HOST)
-            self._web_config()
-            self._web_create_log_dir(web_client)
+            self._create_web()
 
             # load app specific hooks for web
-            self._web_symlink_config(web_client)
+            self.web.hooks_pre()
 
-            self._restart_web(web_client)
+            # restart web server
+            self.web.restart_web()
+
+            # load app specific hooks for db
+            self.web.hooks_post()
+
             self.campdb.activate_camp(self.camp_id)
+            print """-- camp%d is ready for use --""" % self.camp_id
         except CampError, e:
                 self.campdb.delete_camp(self.camp_id)
                 #also possibly need to delete the camp db instance
