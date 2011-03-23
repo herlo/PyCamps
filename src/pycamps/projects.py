@@ -12,11 +12,11 @@ from git.errors import InvalidGitRepositoryError, NoSuchPathError, GitCommandErr
 
 import func.overlord.client as fc
 
-from pycamps.config.campsadmindb import *
-from pycamps.campserror import *
 import pycamps.config.settings as settings
+from pycamps.config.projectsdb import *
+from pycamps.campserror import *
 
-class CampsAdmin:
+class Projects:
     """
     """
     
@@ -27,7 +27,7 @@ class CampsAdmin:
         #print arguments
     
         self.login = os.getenv('LOGNAME')
-        self.admindb = CampsAdminDB()
+        self.admindb = ProjectsDB()
 
     def _send_new_project_email(self, args):
         print "Project: %s with remote repo: %s, has been activated by %s" % (args.name, args.rcs_remote, args.owner)

@@ -3,15 +3,15 @@
 import time
 import argparse
 
-from pycamps import camps as c, campsadmin as a
+from pycamps import camps as c, projects as p
 from pycamps.campserror import *
 
 # the order of these being instantiated is important
-# CampsAdmin must create its tables before Camps
+# ProjectsDB must create its tables before Camps
 # there's probably a better way to do checking to make
 # sure both sets of db tables get created, maybe later
 
-admin = a.CampsAdmin()
+proj = p.Projects()
 camps = c.Camps()
 
 def main():
@@ -119,7 +119,7 @@ def main():
     proj_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
     proj_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
     proj_add.add_argument('--owner', metavar='owner', help='project owner, default is current user')
-    proj_add.set_defaults(func=admin.add_project)
+    proj_add.set_defaults(func=proj.add_project)
 
     # project edit
     proj_edit = p_sp.add_parser('edit', help='edit a project, name and owner cannot change')
@@ -130,17 +130,17 @@ def main():
     proj_edit.add_argument('--snap-size', metavar='size', help='new lvm snapshot size')
 #    proj_edit.add_argument('--web', help='new web server', choices=['httpd'], default='httpd')
 #    proj_edit.add_argument('--db', help='new database server', choices=['mysql'], default='mysql')
-    proj_edit.set_defaults(func=admin.edit_project)
+    proj_edit.set_defaults(func=proj.edit_project)
     
     # project activate
     proj_act = p_sp.add_parser('activate', help='activate a project')
     proj_act.add_argument('name', help='project name to activate')
-    proj_act.set_defaults(func=admin.activate_project)
+    proj_act.set_defaults(func=proj.activate_project)
 
     # project deactivate
     proj_rm = p_sp.add_parser('rm', help='deactivate a project')
     proj_rm.add_argument('name', help='project name to remove')
-    proj_rm.set_defaults(func=admin.deactivate_project)
+    proj_rm.set_defaults(func=proj.deactivate_project)
     
     # list projects
     proj_list = p_sp.add_parser('list', help='list all active projects (by default)')
@@ -148,7 +148,7 @@ def main():
     proj_list_me = proj_list.add_mutually_exclusive_group(required=False)
     proj_list_me.add_argument('-a', '--all', action='store_true', help='include inactive projects')
     proj_list_me.add_argument('-n', '--name', metavar='name', help='list by name')
-    proj_list.set_defaults(func=admin.list_projects)
+    proj_list.set_defaults(func=proj.list_projects)
     
     args = p.parse_args()
     #print "Args: %s" % str(args)

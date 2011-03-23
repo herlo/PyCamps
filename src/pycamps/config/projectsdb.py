@@ -11,7 +11,7 @@ from pycamps.campserror import *
 from pycamps.config.campsdb import CampsDB
 import pycamps.config.settings as settings
 
-class CampsAdminDB():
+class ProjectsDB():
     
     def __init__(self):
         if os.path.isfile(settings.CAMPS_DB):
