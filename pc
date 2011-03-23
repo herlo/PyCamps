@@ -78,12 +78,12 @@ def main():
     p_share.add_argument('-i', '--id', help='camp id')
 
     # unshare a camp
-    p_share = c_sp.add_parser('unshare', help='share a camp')
-    p_share.add_argument('-i', '--id', help='camp id')
+    p_unshare = c_sp.add_parser('unshare', help='share a camp')
+    p_unshare.add_argument('-i', '--id', help='camp id')
 
     # clone a shared camp
     p_clone = c_sp.add_parser('clone', help='clone a shared camp')
-    p_clone.add_argument('name', help='camp name (if not in camp dir)')
+    p_clone.add_argument('id', help='camp # (if not in camp dir)')
 
     # add files to be tracked by scm
     p_track = c_sp.add_parser('track', help='tracked files/dirs')
@@ -113,11 +113,11 @@ def main():
     proj_add = p_sp.add_parser('add', help='add details about project for camps')
     proj_add.add_argument('name', help='project name to add')
     proj_add.add_argument('desc', help='project description')
-    proj_add.add_argument('rcs_remote', metavar='rcs_url', help='url to master code repo')
-    proj_add.add_argument('db_lv', metavar='lvm_path', help='logical volume location for master database')
-    proj_add.add_argument('db_lv_snap', metavar='size', help='logical volume snapshot size')
-    proj_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
-    proj_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
+    proj_add.add_argument('remote', metavar='rcs_url', help='url/path to master code repo')
+    proj_add.add_argument('lv', metavar='lvm_path', help='logical volume location for master database')
+    proj_add.add_argument('snap-size', metavar='size', help='logical volume snapshot size')
+#    proj_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
+#    proj_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
     proj_add.add_argument('--owner', metavar='owner', help='project owner, default is current user')
     proj_add.set_defaults(func=proj.add_project)
 
