@@ -11,7 +11,6 @@ import pycamps.config.settings as settings
 class CampsDB:
     
     def __init__(self):
-        print "Campfile: %s" % settings.CAMPS_DB
         if os.path.isfile(settings.CAMPS_DB):
             self.conn = sqlite.connect(settings.CAMPS_DB)
         else:

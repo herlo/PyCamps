@@ -18,7 +18,7 @@ CAMPS_ROOT = '%s/camps' % (os.environ['HOME'])
 CAMPS_BASENAME = 'camp'
 
 # the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
-CAMPS_DB = '/home/clints/Projects/PyCamps/camps.db'
+CAMPS_DB = '/tmp/testrepo/camps.db'
 
 TESTREPO_PATH = '/tmp/testrepo'
 

@@ -211,7 +211,13 @@ class Camps:
     def remove(self, arguments):
         """Removes a camp directory and its corresponding db directory"""
 
-        # add something here to check for pycampsadmin later on
+        # cd to camps basedir
+        # ensure code in repo is pushed to remote camp
+        # (in httpd function) remove the symlink to httpd dir
+        # remove camp directory
+        # (in the mysql function)     
+        # stop the database
+        # remove sql directory
 
         if arguments.id == None:
             camp_id = self._get_camp_id()
@@ -246,7 +252,6 @@ class Camps:
         print "camp%s directory removed" % camp_id
         self.campdb.deactivate_camp(camp_id)
 
-
     def list(self, args=None):
         camps = self.campdb.camp_list(args.all, args.id)
         print """== Camps List =="""
@@ -269,11 +274,15 @@ class Camps:
     def create(self, args):
         """Initializes a new camp within the current user's home directory.  The following occurs:
         
-        git clone -b campX origin/master #clones master branch 
-        git remote add camps/campX <path/url to central repo> #creates remote branch configuration
-        git push camps/campX 
+        creates a camps db entry and returns the camp_id
+        sets the campname value
+        sets the camppath value
         creates new snapshot from live db
-        configures new database on devdb
+        updates any needed database configs
+        starts database
+
+        clones web docroot from master repo
+
         creates symbolic link to static data (images)
         """
 

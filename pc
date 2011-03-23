@@ -47,7 +47,7 @@ def main():
     p_rm = c_sp.add_parser('rm', help='remove a camp')
     p_rm.add_argument('-f', '--force', action='store_true', help='ignore checks, remove anyway')
     p_rm.add_argument('id', metavar='id', help='camp #')
-    #p_rm.set_defaults(func=camps.remove)
+    p_rm.set_defaults(func=camps.remove)
     
     # start camp components
     p_start = c_sp.add_parser('start', help='start a camp component')
@@ -75,7 +75,11 @@ def main():
     
     # share a camp
     p_share = c_sp.add_parser('share', help='share a camp')
-    p_share.add_argument('-n', '--name', help='camp name (if not in camp dir)')
+    p_share.add_argument('-i', '--id', help='camp id')
+
+    # unshare a camp
+    p_share = c_sp.add_parser('unshare', help='share a camp')
+    p_share.add_argument('-i', '--id', help='camp id')
 
     # clone a shared camp
     p_clone = c_sp.add_parser('clone', help='clone a shared camp')
