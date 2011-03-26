@@ -65,8 +65,15 @@ class DB:
             raise CampError("""Unable to stop db camp%s, contact the administrator '%s' <%s>""" % (camp_id, settings.ADMIN_NAME, settings.ADMIN_EMAIL))
         print "camp%d database stopped" % self.camp_id
 
-    def hooks_pre(self):
-        pass
+    def hooks_preconfig(self):
+        for preconfig in settings.EXTERNAL_HOOKS:
+            preconfig.db_preconfig(settings, self.project, self.camp_id)
 
-    def hooks_post(self):
+    def hooks_postconfig(self):
+        for postconfig in settings.EXTERNAL_HOOKS:
+            postconfig.db_postconfig(settings, self.project, self.camp_id)
+
+    def hooks_poststart(self):
+        for poststart in settings.EXTERNAL_HOOKS:
+            poststart.db_poststart(settings, self.project, self.camp_id)
         pass

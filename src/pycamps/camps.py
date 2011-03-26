@@ -46,6 +46,32 @@ class Camps:
         else:
             return None
 
+    def _create_db(self):
+
+       self.db = DB(self.project, self.camp_id)
+
+       # do any app specific configuration of the db 
+       self.db.hooks_preconfig()
+
+       lv_info = self.projdb.get_lv_info(self.project)
+       self.db.clone_db(lv_info)
+
+    def _create_web(self):
+
+        self.web = Web(self.project, self.camp_id)
+
+        # do any app specific configuration for web 
+        self.web.hooks_preconfig()
+
+        master_url = self.projdb.get_remote(self.project)
+        camp_info = self.campdb.get_camp_info(self.camp_id)
+        camp_url = self.web.clone_docroot(master_url, camp_info)
+        self.campdb.set_remote(self.camp_id, camp_url)
+
+        self.web.create_config()
+        self.web.create_symlink_config()
+        self.web.create_log_dir()
+
     def stop(self, arguments):
         if arguments.id == None:
             camp_id = self._get_camp_id()
@@ -88,7 +114,6 @@ class Camps:
     def remove(self, arguments):
         """Removes a camp directory and its corresponding db directory"""
 
-        # cd to camps basedir
         # ensure code in repo is pushed to remote camp
         # (in httpd function) remove the symlink to httpd dir
         # remove camp directory
@@ -148,25 +173,6 @@ class Camps:
                 print """\t[path: %s, remote: %s, db host: %s, db port: %d]""" % (c[3], c[5], c[6], c[7])
                 print
 
-    def _create_db(self):
-
-       self.db = DB(self.project, self.camp_id)
-
-       lv_info = self.projdb.get_lv_info(self.project)
-       self.db.clone_db(lv_info)
-
-    def _create_web(self):
-
-        self.web = Web(self.project, self.camp_id)
-        master_url = self.projdb.get_remote(self.project)
-        camp_info = self.campdb.get_camp_info(self.camp_id)
-        camp_url = self.web.clone_docroot(master_url, camp_info)
-        self.campdb.set_remote(self.camp_id, camp_url)
-
-        self.web.create_config()
-        self.web.create_symlink_config()
-        self.web.create_log_dir()
-
     def create(self, args):
         """Initializes a new camp within the current user's home directory.  The following occurs:
         
@@ -196,25 +202,25 @@ class Camps:
             self._create_db()
 
             # load app specific hooks for db
-            self.db.hooks_pre()
+            self.db.hooks_postconfig()
 
             # start db
             self.db.start_db()
 
             # load app specific hooks for db
-            self.db.hooks_post()
+            self.db.hooks_poststart()
 
             # clone and configure web
             self._create_web()
 
             # load app specific hooks for web
-            self.web.hooks_pre()
+            self.web.hooks_postconfig()
 
             # restart web server
             self.web.restart_web()
 
             # load app specific hooks for db
-            self.web.hooks_post()
+            self.web.hooks_poststart()
 
             self.campdb.activate_camp(self.camp_id)
             print """-- camp%d is ready for use --""" % self.camp_id

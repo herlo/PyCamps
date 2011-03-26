@@ -1,0 +1,52 @@
+# magento hooks for pycamps
+# calls db_preconfig, db_postconfig, db_poststart 
+# and web_preconfig, web_postconfig, web_poststart
+
+class BaseHooks:
+
+    @classmethod
+    def db_preconfig(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def db_postconfig(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def db_poststart(self, settings, proj, camp_id):
+        pass
+    
+    @classmethod
+    def db_poststop(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def db_preremove(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def db_postremove(self, settings, proj, camp_id):
+
+    @classmethod
+    def web_preconfig(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def web_postconfig(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def web_poststart(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def web_poststop(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def web_preremove(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def web_postremove(self, settings, proj, camp_id):
+

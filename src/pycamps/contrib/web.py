@@ -112,8 +112,15 @@ class Web:
 
         print """camp%d web server restarted""" % (self.camp_id)
 
-    def hooks_pre(self):
-        pass
+    def hooks_preconfig(self):
+        for preconfig in settings.EXTERNAL_HOOKS:
+            preconfig.web_preconfig(settings, self.project, self.camp_id)
 
-    def hooks_post(self):
-        pass
+    def hooks_postconfig(self):
+        for postconfig in settings.EXTERNAL_HOOKS:
+            postconfig.web_postconfig(settings, self.project, self.camp_id)
+
+    def hooks_poststart(self):
+        for poststart in settings.EXTERNAL_HOOKS:
+            poststart.web_poststart(settings, self.project, self.camp_id)
+
