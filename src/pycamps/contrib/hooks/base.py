@@ -17,6 +17,10 @@ class BaseHooks:
         pass
     
     @classmethod
+    def db_prestop(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
     def db_poststop(self, settings, proj, camp_id):
         pass
 
@@ -26,6 +30,7 @@ class BaseHooks:
 
     @classmethod
     def db_postremove(self, settings, proj, camp_id):
+        pass
 
     @classmethod
     def web_preconfig(self, settings, proj, camp_id):
@@ -36,7 +41,15 @@ class BaseHooks:
         pass
 
     @classmethod
+    def web_prestart(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
     def web_poststart(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
+    def web_prestop(self, settings, proj, camp_id):
         pass
 
     @classmethod
@@ -49,4 +62,4 @@ class BaseHooks:
 
     @classmethod
     def web_postremove(self, settings, proj, camp_id):
-
+        pass

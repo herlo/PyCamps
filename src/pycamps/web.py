@@ -14,7 +14,7 @@ import func.overlord.client as fc
 import git
 from git.errors import InvalidGitRepositoryError, NoSuchPathError, GitCommandError
 
-
+from pycamps.campserror import *
 import pycamps.config.settings as settings
 
 class Web:
@@ -25,11 +25,14 @@ class Web:
         self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
         self.project = project
 
-    def clone_docroot(self, remote_url, camp_info):
+    def set_camp_info(self, camp_info):
+        self.camp_info = camp_info
 
-        self.owner = camp_info['owner']
-        self.camppath = camp_info['path']
-        self.db_port = camp_info['db_port']
+    def clone_docroot(self, remote_url):
+
+        self.owner = self.camp_info['owner']
+        self.camppath = self.camp_info['path']
+        self.db_port = self.camp_info['db_port']
 
         try: 
             os.stat('%s' % self.camppath)
@@ -85,9 +88,18 @@ class Web:
 
         file.close()
 
+    def remove_symlink_config(self):
+        """remove the configuration link in the web server"""
+        self.camppath = self.camp_info['path']
+
+        rm_httpd_symlink_config = """/bin/rm -f %s/%s.conf""" % (settings.HTTPD_CONFIG_DIR, self.campname)
+        result = self.func.command.run(rm_httpd_symlink_config)
+        if result[settings.FUNC_WEB_HOST][0] != 0:
+            raise CampError("""Unable to start web server for camp%d, contact an admin\n""" % (self.camp_id))
+
     def create_symlink_config(self):
         # do the symbolic link to httpd_config_root
-        symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTP_CONFIG_DIR, self.campname)
+        symlink_httpd_config = '''/bin/ln -s %s %s/%s.conf''' % (self.web_conf_file, settings.HTTPD_CONFIG_DIR, self.campname)
         result = self.func.command.run(symlink_httpd_config)
 
     def create_log_dir(self):
@@ -100,6 +112,34 @@ class Web:
             pass
 
         print """camp%d web log directory created""" % (self.camp_id)
+
+    def push_camp(self):
+        self.owner = self.camp_info['owner']
+        self.camppath = self.camp_info['path']
+        self.db_port = self.camp_info['db_port']
+        self.rcs_remote = self.camp_info['rcs_remote']
+
+        try:
+            repo = git.Repo(self.camppath)
+            repo.remotes.origin.push('refs/heads/master:refs/heads/master')
+            print """camp%d code pushed""" % self.camp_id
+
+        except NoSuchPathError, e:
+            pass
+
+    def remove_camp(self):
+        self.camppath = self.camp_info['path']
+
+        rm_camp_command = """/bin/rm -rf %s""" % self.camppath
+        result = self.func.command.run(rm_camp_command)
+        if result[settings.FUNC_WEB_HOST][0] != 0:
+            print """Unable to remove camp%d, this is not a fatal error.  Please remove '%s' manually.""" % (self.camp_id, self.camppath)
+
+    def start_web(self):
+        pass
+
+    def stop_web(self):
+        pass
 
     def restart_web(self):
         # restart the web service
@@ -120,7 +160,26 @@ class Web:
         for postconfig in settings.EXTERNAL_HOOKS:
             postconfig.web_postconfig(settings, self.project, self.camp_id)
 
+    def hooks_prestart(self):
+        for prestart in settings.EXTERNAL_HOOKS:
+            prestart.web_prestart(settings, self.project, self.camp_id)
+
     def hooks_poststart(self):
         for poststart in settings.EXTERNAL_HOOKS:
             poststart.web_poststart(settings, self.project, self.camp_id)
 
+    def hooks_prestop(self):
+        for prestop in settings.EXTERNAL_HOOKS:
+            prestop.web_prestop(settings, self.project, self.camp_id)
+
+    def hooks_poststop(self):
+        for poststop in settings.EXTERNAL_HOOKS:
+            poststop.web_poststop(settings, self.project, self.camp_id)
+
+    def hooks_preremove(self):
+        for preremove in settings.EXTERNAL_HOOKS:
+            preremove.web_preremove(settings, self.project, self.camp_id)
+
+    def hooks_postremove(self):
+        for postremove in settings.EXTERNAL_HOOKS:
+            postremove.web_postremove(settings, self.project, self.camp_id)

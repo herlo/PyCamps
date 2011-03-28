@@ -16,6 +16,9 @@ class DB:
         self.camp_id = int(camp_id)
         self.project = project
 
+    def set_camp_info(self, camp_info):
+        self.camp_info = camp_info
+
     def _clone_db_lvm_snap(self, lv_infos):
         """Clones the campmaster db into a particular camp db 
         using logical volume snapshots"""
@@ -57,13 +60,15 @@ class DB:
             raise CampError("""Unable to start db for camp%d, contact an admin\n""" % (self.camp_id))
         print "camp%d database started" % self.camp_id
 
-    def stop(self, camp_id):
-        result = self.func.command.run("/usr/bin/mysqld_multi stop %s" % camp_id)
+    def stop_db(self):
+        result = self.func.command.run("/usr/bin/mysqld_multi stop %s" % self.camp_id)
         time.sleep(10)
-        result = self.func.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % camp_id)
+        result = self.func.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % self.camp_id)
         if result[settings.FUNC_DB_HOST][0] != 1:
-            raise CampError("""Unable to stop db camp%s, contact the administrator '%s' <%s>""" % (camp_id, settings.ADMIN_NAME, settings.ADMIN_EMAIL))
+            raise CampError("""Unable to stop db for camp%s, contact an admin\n""" % self.camp_id)
         print "camp%d database stopped" % self.camp_id
+
+    # lots of hooks to handle extra functionality per application
 
     def hooks_preconfig(self):
         for preconfig in settings.EXTERNAL_HOOKS:
@@ -76,4 +81,19 @@ class DB:
     def hooks_poststart(self):
         for poststart in settings.EXTERNAL_HOOKS:
             poststart.db_poststart(settings, self.project, self.camp_id)
-        pass
+
+    def hooks_prestop(self):
+        for prestop in settings.EXTERNAL_HOOKS:
+            prestop.db_prestop(settings, self.project, self.camp_id)
+
+    def hooks_poststop(self):
+        for poststop in settings.EXTERNAL_HOOKS:
+            poststop.db_poststop(settings, self.project, self.camp_id)
+
+    def hooks_preremove(self):
+        for preremove in settings.EXTERNAL_HOOKS:
+            preremove.db_preremove(settings, self.project, self.camp_id)
+
+    def hooks_postremove(self):
+        for postremove in settings.EXTERNAL_HOOKS:
+            postremove.db_postremove(settings, self.project, self.camp_id)
