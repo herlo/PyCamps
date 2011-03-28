@@ -135,12 +135,6 @@ class Web:
         if result[settings.FUNC_WEB_HOST][0] != 0:
             print """Unable to remove camp%d, this is not a fatal error.  Please remove '%s' manually.""" % (self.camp_id, self.camppath)
 
-    def start_web(self):
-        pass
-
-    def stop_web(self):
-        pass
-
     def restart_web(self):
         # restart the web service
         web_restart_cmd = """service httpd restart"""

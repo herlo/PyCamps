@@ -13,6 +13,10 @@ class BaseHooks:
         pass
 
     @classmethod
+    def db_prestart(self, settings, proj, camp_id):
+        pass
+
+    @classmethod
     def db_poststart(self, settings, proj, camp_id):
         pass
     
