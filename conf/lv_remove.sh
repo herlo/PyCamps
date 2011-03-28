@@ -24,13 +24,13 @@ umount ${LV_SNAP}
 printf "Done!\n"
 
 ## Pause for a bit so the file systems can complete their dismount
-sleep 5 
+sleep 2 
 
 ## Flush any buffers to disc again - just to be sure
 sync
 
-## Wait another 10 seconds for everything to stabilise
-sleep 5
+## Wait another 2 seconds for everything to stabilise
+sleep 2
 
 ### I have to use "dmsetup remove" to deactivate the snapshots first
 dmsetup remove ${LV_SNAP}

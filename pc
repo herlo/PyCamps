@@ -1,0 +1,168 @@
+#!/usr/bin/python
+
+import sys
+import time
+import argparse
+
+from pycamps import camps as c, projects as p
+from pycamps.campserror import *
+
+# the order of these being instantiated is important
+# ProjectsDB must create its tables before Camps
+# there's probably a better way to do checking to make
+# sure both sets of db tables get created, maybe later
+
+try:
+    proj = p.Projects()
+    camps = c.Camps()
+except CampError, e:
+    print e.value
+    sys.exit(1)
+
+
+def main():
+
+    p = argparse.ArgumentParser(
+            description='''Dispatches commands to 
+            manage development project data''',
+        )
+    
+    sp = p.add_subparsers()
+    
+    #################
+    # general stuff #
+    #################
+    cp = sp.add_parser('camp', help='camp management')
+    c_sp = cp.add_subparsers()
+    
+    # init a camp
+    p_init = c_sp.add_parser('init', help='initialize (create) a camp')
+    p_init.add_argument('proj', help='name of project to import')
+    p_init.add_argument('-d', '--desc', help="purpose of camp")
+    p_init.set_defaults(func=camps.create)
+    
+    # list camps
+    p_list = c_sp.add_parser('list', help='list camps')
+    p_list.add_argument('-l', '--long', action='store_true', help='detailed (long) listing')
+    p_list_me = p_list.add_mutually_exclusive_group(required=False)
+    p_list_me.add_argument('-i', '--id', metavar='id', help='list by camp id', type=int)
+    p_list_me.add_argument('-a', '--all', action='store_true', help='include inactive camps')
+    p_list.set_defaults(func=camps.list)
+    
+    # remove a camp
+    p_rm = c_sp.add_parser('rm', help='remove a camp')
+    p_rm.add_argument('-f', '--force', action='store_true', help='ignore checks, remove anyway')
+    p_rm.add_argument('id', metavar='id', help='camp #', type=int)
+    p_rm.set_defaults(func=camps.remove)
+    
+    # start camp components
+    p_start = c_sp.add_parser('start', help='start a camp component')
+    p_start.add_argument('-i', '--id', metavar='id', help='camp id')
+    p_start.add_argument('--db', help='start database', action='store_true')
+    p_start.add_argument('--web', help='start web server', action='store_true')
+    p_start.add_argument('-a', '--all', help='start db and web', action='store_true')
+    p_start.set_defaults(func=camps.start)
+
+    # stop camp components
+    p_stop = c_sp.add_parser('stop', help='stop a camp component')
+    p_stop.add_argument('-i', '--id', metavar='id', help='camp id')
+    p_stop.add_argument('--db', help='stop database', action='store_true')
+    p_stop.add_argument('--web', help='stop web server', action='store_true')
+    p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
+    p_stop.set_defaults(func=camps.stop)
+
+    # restart camp components
+    p_restart = c_sp.add_parser('restart', help='restart camp component')
+    p_restart.add_argument('-i', '--id', metavar='id', help='camp id')
+    p_restart.add_argument('--db', help='restart databae', action='store_true')
+    p_restart.add_argument('--web', help='restart web server', action='store_true')
+    p_restart.add_argument('-a', '--all', help='stop all', action='store_true')
+    #p_restart.set_defaults(func=camps.restart)
+    
+    # share a camp
+    p_share = c_sp.add_parser('share', help='share a camp')
+    p_share.add_argument('-i', '--id', help='camp id')
+
+    # unshare a camp
+    p_unshare = c_sp.add_parser('unshare', help='share a camp')
+    p_unshare.add_argument('-i', '--id', help='camp id')
+
+    # clone a shared camp
+    p_clone = c_sp.add_parser('clone', help='clone a shared camp')
+    p_clone.add_argument('id', help='camp # (if not in camp dir)')
+
+    # add files to be tracked by scm
+    p_track = c_sp.add_parser('track', help='tracked files/dirs')
+    p_track.add_argument('files', nargs='+', help='list of files/dirs to be tracked')
+
+    # remove files to be tracked by scm
+    p_untrack = c_sp.add_parser('untrack', help='before commit, untrack files')
+    p_track.add_argument('files', nargs='+', help='list of files to be untracked')
+
+    # commit and push tracked files
+    p_commit = c_sp.add_parser('commit', help='commit tracked files')
+    p_commit.add_argument('-m', '--msg', metavar='msg', help='commit message')
+
+    # show commit log
+    p_log = c_sp.add_parser('log', help='show commit log')
+    p_log.add_argument('-n', '--num', metavar='num', help='number of messages to show')
+    
+    ########################
+    # project stuff        #
+    ########################
+    
+    # project add/remove/etc
+    p_proj = sp.add_parser('project', help='project management')
+    p_sp = p_proj.add_subparsers()
+    
+    # project add
+    proj_add = p_sp.add_parser('add', help='add details about project for camps')
+    proj_add.add_argument('name', help='project name to add')
+    proj_add.add_argument('desc', help='project description')
+    proj_add.add_argument('remote', metavar='rcs_url', help='url/path to master code repo')
+    proj_add.add_argument('lv', metavar='lvm_path', help='logical volume location for master database')
+    proj_add.add_argument('snap-size', metavar='size', help='logical volume snapshot size')
+#    proj_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
+#    proj_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
+    proj_add.add_argument('--owner', metavar='owner', help='project owner, default is current user')
+    proj_add.set_defaults(func=proj.add_project)
+
+    # project edit
+    proj_edit = p_sp.add_parser('edit', help='edit a project, name and owner cannot change')
+    proj_edit.add_argument('name', help='project name to edit (REQUIRED)')
+    proj_edit.add_argument('--desc', metavar='desc', help='new project description')
+    proj_edit.add_argument('--remote', metavar='rcs_url', help='new url to master code repo')
+    proj_edit.add_argument('--lv', metavar='lvm_path', help='new logical volume location for master database')
+    proj_edit.add_argument('--snap-size', metavar='size', help='new lvm snapshot size')
+#    proj_edit.add_argument('--web', help='new web server', choices=['httpd'], default='httpd')
+#    proj_edit.add_argument('--db', help='new database server', choices=['mysql'], default='mysql')
+    proj_edit.set_defaults(func=proj.edit_project)
+    
+    # project activate
+    proj_act = p_sp.add_parser('activate', help='activate a project')
+    proj_act.add_argument('name', help='project name to activate')
+    proj_act.set_defaults(func=proj.activate_project)
+
+    # project deactivate
+    proj_rm = p_sp.add_parser('rm', help='deactivate a project')
+    proj_rm.add_argument('name', help='project name to remove')
+    proj_rm.set_defaults(func=proj.deactivate_project)
+    
+    # list projects
+    proj_list = p_sp.add_parser('list', help='list all active projects (by default)')
+    proj_list.add_argument('-l', '--long', action='store_true', help='long list with detail')
+    proj_list_me = proj_list.add_mutually_exclusive_group(required=False)
+    proj_list_me.add_argument('-a', '--all', action='store_true', help='include inactive projects')
+    proj_list_me.add_argument('-n', '--name', metavar='name', help='list by name')
+    proj_list.set_defaults(func=proj.list_projects)
+    
+    args = p.parse_args()
+    #print "Args: %s" % str(args)
+    try:
+        args.func(args)
+    except CampError, e:
+        print e.value
+
+
+if __name__ == "__main__":
+    main()
