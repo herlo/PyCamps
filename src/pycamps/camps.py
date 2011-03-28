@@ -220,11 +220,17 @@ class Camps:
         self.db.hooks_poststop()
         self.db.hooks_preremove()
 
-#        self.db.unmount_db()
-#
-#        self.db.remove_db_data()
-#
-#        self.db.hooks_postremove()
+        # probably ought to remove the config from 
+        # /etc/my.cnf at some point 
+        #  this function does nothing atm
+        self.db.remove_db_config()
+
+        lv_info = self.projdb.get_lv_info(self.project)
+        self.db.unmount_db(lv_info)
+
+        self.db.remove_db_lv(lv_info)
+
+        self.db.hooks_postremove()
 
         self.campdb.deactivate_camp(self.camp_id)
 
@@ -238,7 +244,7 @@ class Camps:
                 else:
                     print "camp%d 'no description' (project: %s, owner: %s) %s" % (c[0], c[1], c[4], "INACTIVE")
             else:
-                if c[8]:
+                if c[9]:
                     print "camp%d '%s' (project: %s, owner: %s) %s" % (c[0], c[2], c[1], c[4], "ACTIVE")
                 else:
                     print "camp%d '%s' (project: %s, owner: %s) %s" % (c[0], c[2], c[1], c[4], "INACTIVE")
