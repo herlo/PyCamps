@@ -124,7 +124,6 @@ class Camps:
 
         self.project = self.campdb.get_project(self.camp_id)
         self.db = DB(self.project, self.camp_id)
-
         # run app specific hooks for db
         self.db.hooks_prestart()
 
@@ -215,37 +214,25 @@ class Camps:
 
         # remove web configs
         self._remove_web_config()
-
         self.web.push_camp()
-
         self.web.remove_camp()
-
         self.web.hooks_prestop()
-        self.web.stop_web()
-        self.web.hooks_poststop()
-        self.web.hooks_prestart()
-        self.web.start_web()
+        self.web.restart_web()
         self.web.hooks_poststart()
 
         # stop db
         self._stop_db()
-
         # load app specific hooks for db
         self.db.hooks_poststop()
         self.db.hooks_preremove()
-
         # probably ought to remove the config from 
         # /etc/my.cnf at some point 
         #  this function does nothing atm
         self.db.remove_db_config()
-
         lv_info = self.projdb.get_lv_info(self.project)
         self.db.unmount_db(lv_info)
-
         self.db.remove_db_lv(lv_info)
-
         self.db.hooks_postremove()
-
         self.campdb.deactivate_camp(self.camp_id)
 
     def list(self, args=None):
