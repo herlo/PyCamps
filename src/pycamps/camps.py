@@ -45,10 +45,10 @@ class Camps:
 
     def _get_camp_id(self):
         """Attempt to obtain the camp_id by looking at the basename of the path.  
-           If the path is not in a camp, this function will fail."""
+           If the path is not in a camp, this function will return None."""
         camp_basename = os.path.basename(os.getcwd())
         if re.match("^%s\d+$" % settings.CAMPS_BASENAME, camp_basename):
-            return re.split("^%s" % settings.CAMPS_BASENAME, camp_basename)[1]
+            return int(re.split("^%s" % settings.CAMPS_BASENAME, camp_basename)[1])
         else:
             return None
 
@@ -68,26 +68,23 @@ class Camps:
 
         # set the project info
         self.project = self.campdb.get_project(self.camp_id)
-
         # initialize the web class
         self.web = Web(self.project, self.camp_id)
-
         # set the camp_info 
         self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
-
         # preremove hook
         self.web.hooks_preremove()
-
         # remove symlink for web config
         self.web.remove_symlink_config()
 
-    def _stop_web(self):
+    def _restart_web(self):
 
         self.project = self.campdb.get_project(self.camp_id)
         self.web = Web(self.project, self.camp_id)
 
-        # do any app specific configuration for web 
         self.web.hooks_prestop()
+        self.web.restart_web()
+        self.web.hooks_poststart()
 
     def _create_web(self):
 
@@ -121,51 +118,67 @@ class Camps:
             print e.value
             pass
 
-    def stop(self, arguments):
+        self.db.hooks_poststop()
 
-        if not arguments.db and not arguments.web and not arguments.all:
-            raise CampError("""One of the following options is required: --db, --web, --all""")
+    def _start_db(self):
+
+        self.project = self.campdb.get_project(self.camp_id)
+        self.db = DB(self.project, self.camp_id)
+        # run app specific hooks for db
+        self.db.hooks_prestart()
+
+        try:
+            self.db.start_db()
+        except CampError, e:
+            print e.value
+            pass
+
+        self.db.hooks_poststart()
+
+    def stop(self, arguments):
 
         if arguments.id:
             self.camp_id = arguments.id
         else:
-            try:
-                self.camp_id = self._get_camp_id()
-            except CampError, e:
-                raise CampError("""Please provide the camp id with --id option or move to the camp directory""")
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        if arguments.db:
-            print "Stopping database on camp%s" % self.camp_id
-            # clone db lv
-            self._stop_db()
-    
-            # load app specific hooks for db
-            self.db.hooks_poststop()
-
-        if arguments.web:
-            pass
+        print "Stopping database on camp%s" % self.camp_id
+        # clone db lv
+        self._stop_db()
 
     def start(self, arguments):
-#        if arguments.id == None:
-#            camp_id = self._get_camp_id()
-#            if camp_id == None:
-#                raise CampError("The camp_id was not supplied or could not be obtained")
-#        else:
-#            camp_id = arguments.id
-#
-#        if arguments.db:
-#            print "Starting database on camp%s" % camp_id
-#            client = fc.Client(settings.FUNC_DB_HOST)
-#            self._start_db(client, camp_id)
-#            print "camp%s database server successfully started" % camp_id
-#        if arguments.web:
-#            print "camp%s web server successfully started" % camp_id
-            pass
+
+        if arguments.id:
+            self.camp_id = arguments.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        print "Stopping database on camp%s" % self.camp_id
+        # clone db lv
+        self._start_db()
 
     def restart(self, arguments):
-#        self.stop(arguments)
-#        self.start(arguments)
-        pass
+
+        if arguments.id:
+            self.camp_id = arguments.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        if arguments.db or arguments.all:
+            print """stopping db on camp%d""" % self.camp_id
+            self._stop_db()
+            print """starting db on camp%d""" % self.camp_id
+            self._start_db()
+
+        if arguments.web or arguments.all:
+            print """restarting web server"""
+            self._restart_web()
 
     def remove(self, arguments):
         """Removes a camp directory and its corresponding db directory"""
@@ -201,37 +214,25 @@ class Camps:
 
         # remove web configs
         self._remove_web_config()
-
         self.web.push_camp()
-
         self.web.remove_camp()
-
         self.web.hooks_prestop()
-        self.web.stop_web()
-        self.web.hooks_poststop()
-        self.web.hooks_prestart()
-        self.web.start_web()
+        self.web.restart_web()
         self.web.hooks_poststart()
 
         # stop db
         self._stop_db()
-
         # load app specific hooks for db
         self.db.hooks_poststop()
         self.db.hooks_preremove()
-
         # probably ought to remove the config from 
         # /etc/my.cnf at some point 
         #  this function does nothing atm
         self.db.remove_db_config()
-
         lv_info = self.projdb.get_lv_info(self.project)
         self.db.unmount_db(lv_info)
-
         self.db.remove_db_lv(lv_info)
-
         self.db.hooks_postremove()
-
         self.campdb.deactivate_camp(self.camp_id)
 
     def list(self, args=None):

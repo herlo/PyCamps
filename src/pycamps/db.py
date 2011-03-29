@@ -103,6 +103,10 @@ class DB:
         for postconfig in settings.EXTERNAL_HOOKS:
             postconfig.db_postconfig(settings, self.project, self.camp_id)
 
+    def hooks_prestart(self):
+        for prestart in settings.EXTERNAL_HOOKS:
+            prestart.db_prestart(settings, self.project, self.camp_id)
+
     def hooks_poststart(self):
         for poststart in settings.EXTERNAL_HOOKS:
             poststart.db_poststart(settings, self.project, self.camp_id)

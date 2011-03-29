@@ -56,28 +56,23 @@ def main():
     p_rm.set_defaults(func=camps.remove)
     
     # start camp components
-    p_start = c_sp.add_parser('start', help='start a camp component')
+    p_start = c_sp.add_parser('start', help='start a camp database')
     p_start.add_argument('-i', '--id', metavar='id', help='camp id')
-    p_start.add_argument('--db', help='start database', action='store_true')
-    p_start.add_argument('--web', help='start web server', action='store_true')
-    p_start.add_argument('-a', '--all', help='start db and web', action='store_true')
     p_start.set_defaults(func=camps.start)
 
     # stop camp components
-    p_stop = c_sp.add_parser('stop', help='stop a camp component')
+    p_stop = c_sp.add_parser('stop', help='stop a camp database')
     p_stop.add_argument('-i', '--id', metavar='id', help='camp id')
-    p_stop.add_argument('--db', help='stop database', action='store_true')
-    p_stop.add_argument('--web', help='stop web server', action='store_true')
-    p_stop.add_argument('-a', '--all', help='stop all', action='store_true')
     p_stop.set_defaults(func=camps.stop)
 
     # restart camp components
-    p_restart = c_sp.add_parser('restart', help='restart camp component')
-    p_restart.add_argument('-i', '--id', metavar='id', help='camp id')
-    p_restart.add_argument('--db', help='restart databae', action='store_true')
-    p_restart.add_argument('--web', help='restart web server', action='store_true')
-    p_restart.add_argument('-a', '--all', help='stop all', action='store_true')
-    #p_restart.set_defaults(func=camps.restart)
+    p_restart = c_sp.add_parser('restart', help='restart camp db and/or web server')
+    p_restart.add_argument('-i', '--id', metavar='id', type=int, help='camp id')
+    p_restart_me = p_restart.add_mutually_exclusive_group(required=False)
+    p_restart_me.add_argument('--db', help='restart database', action='store_true')
+    p_restart_me.add_argument('--web', help='restart web server', action='store_true')
+    p_restart_me.add_argument('-a', '--all', help='stop all', action='store_true')
+    p_restart.set_defaults(func=camps.restart)
     
     # share a camp
     p_share = c_sp.add_parser('share', help='share a camp')
