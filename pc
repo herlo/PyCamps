@@ -75,12 +75,14 @@ def main():
     p_restart.set_defaults(func=camps.restart)
     
     # share a camp
-    p_share = c_sp.add_parser('share', help='share a camp')
+    p_share = c_sp.add_parser('share', help='give permission to clone a camp')
     p_share.add_argument('-i', '--id', help='camp id')
+    p_share.add_argument('-u', '--user', help='user with which to share camp')
 
     # unshare a camp
-    p_unshare = c_sp.add_parser('unshare', help='share a camp')
+    p_unshare = c_sp.add_parser('unshare', help='remove permission to clone a camp')
     p_unshare.add_argument('-i', '--id', help='camp id')
+    p_unshare.add_argument('-u', '--user', help='user to remove from camp sharing')
 
     # clone a shared camp
     p_clone = c_sp.add_parser('clone', help='clone a shared camp')
@@ -116,7 +118,7 @@ def main():
     proj_add.add_argument('desc', help='project description')
     proj_add.add_argument('remote', metavar='rcs_url', help='url/path to master code repo')
     proj_add.add_argument('lv', metavar='lvm_path', help='logical volume location for master database')
-    proj_add.add_argument('snap-size', metavar='size', help='logical volume snapshot size')
+    proj_add.add_argument('size', metavar='snap-size', help='logical volume snapshot size')
 #    proj_add.add_argument('--web', help='web server to use', choices=['httpd'], default='httpd')
 #    proj_add.add_argument('--db', help='database server to use', choices=['mysql'], default='mysql')
     proj_add.add_argument('--owner', metavar='owner', help='project owner, default is current user')
@@ -128,7 +130,7 @@ def main():
     proj_edit.add_argument('--desc', metavar='desc', help='new project description')
     proj_edit.add_argument('--remote', metavar='rcs_url', help='new url to master code repo')
     proj_edit.add_argument('--lv', metavar='lvm_path', help='new logical volume location for master database')
-    proj_edit.add_argument('--snap-size', metavar='size', help='new lvm snapshot size')
+    proj_edit.add_argument('--size', metavar='snap-size', help='new lvm snapshot size')
 #    proj_edit.add_argument('--web', help='new web server', choices=['httpd'], default='httpd')
 #    proj_edit.add_argument('--db', help='new database server', choices=['mysql'], default='mysql')
     proj_edit.set_defaults(func=proj.edit_project)

@@ -122,6 +122,14 @@ class ProjectsDB():
         c.close()
         return {'vg': vg, 'lv': lv, 'snap': snap}
 
+    def is_active(self,name):
+        c = self.conn.cursor()
+        sql = """select active from projects where name = '%s'""" % name
+        r = c.execute(sql)
+        active = r.fetchone()[0]
+        c.close()
+        return int(active)
+
 def main():                         
 
     ##### CampsAdminDB table structure #####

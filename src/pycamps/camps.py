@@ -272,6 +272,8 @@ class Camps:
         """
 
         self.project = args.proj
+        if not self.projdb.is_active(self.project):
+            raise CampError("""Project '%s' is not an active project.  Please contact an admin or choose a different project""" % self.project)
 
         try:
             self.camp_id = self.campdb.create_camp(args.proj, args.desc, settings.CAMPS_ROOT, self.login, settings.DB_HOST)
@@ -281,30 +283,22 @@ class Camps:
 
             # clone db lv
             self._create_db()
-
             # load app specific hooks for db
             self.db.hooks_postconfig()
-
             # start db
             self.db.start_db()
-
             # load app specific hooks for db
             self.db.hooks_poststart()
-
             # clone and configure web
             self._create_web()
-
             # load app specific hooks for web
             self.web.hooks_postconfig()
-
             # restart web server
             self.web.restart_web()
-
             # load app specific hooks for db
             self.web.hooks_poststart()
-
             self.campdb.activate_camp(self.camp_id)
-            print """-- camp%d is ready for use --""" % self.camp_id
+            print """-- camp%d has been setup at %s --""" % (self.camp_id, self.camppath)
         except CampError, e:
             self.campdb.delete_camp(self.camp_id)
             #also possibly need to delete the camp db instance
