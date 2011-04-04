@@ -8,44 +8,64 @@ To install PyCamps, read the INSTALL.markdown document in this directory.
 
 ## PyCamps Structure ##
 
-The camp structure will look something like this:
+The camp file structure will look similar to this:
 
     /home/
         clints/
             campX/
-                .git/
-                .gitignore
                 httpd/
                     conf.d/site.conf
                     conf.d/ssl.conf
-                mysql/
-                    my.cnf
                 docroot/
-                    mobile/
-                db/
-                    migrations.sql
-                images/
+                    project-root/
+				logs/
+					campX-access_log
+					campX-error_log
 
-## Commands ##
+- 'httpd' holds the configurations for the apache virtual host.  It is possible to use other web servers, like nginx, lighttpd, etc. if desired.
+- 'docroot' holds your web code.  This could be any type of code, php, perl, python, etc. Administrators will need to setup any dependencies. The content of docroot will likely come from the project's master code repository.
+- 'logs' holds web server and database logs :).  These should be available to you to help troubleshoot and debug issues with the code.
 
-All actions use the 'camp' command with specified arguments passed to perform a particular action:
+## Commands Quickstart ##
 
-    pycamps
-        init description "mix master landing pages"  # camp_id returned on successful init
-        rm camp_id # remove camp_id (must be run within camp *and* requires camp_id)
-		start|stop|restart db|web [camp_id] # similar to sysV service, but uses camp methods
-		refresh db|web|conf|all  [camp_id] # refresh the database, the web root, the configs, or all
-		share|unshare [camp_id] # shares a camp with another developer
-		clone [camp_id] # creates a shared instance of a shared camp
-        add file_list  # adds the list of files ready to be sent to qa
-        commit [message] # creates an entry with a list of files to be sent to qa
-        qa # pushes all commits to qa server
-		merge # merges approved qa changes into live camp
-		push # pushes live camp into production
+The script that controls all of PyCamps is 'pc'.  The two main things pc can do is manage projects or camps. 
 
-	pycampsadmin
-		Used to setup, configure and maintain the camps.  This will setup and configure the desired web server, 
-		database and git hooks. Likely will be available in the second major release of pycamps.
+    $ pc -h
+    usage: pc [-h] {project,camp} ...
+    
+    Dispatches commands to manage development project data
+    
+    positional arguments:
+      {project,camp}
+        camp          camp management
+        project       project management
+	.. snip ..
+
+Most of the project commands are commands that will be run by an administrator, but some are useful to developers:
+
+    $ pc project list
+    == Project List ==
+    Project: abd 'short description' (owner: clints) ACTIVE
+    Project: rma 'short description' (owner: clints) ACTIVE
+
+This, then leads into the ability to create a camp based upon one of these projects:
+
+    $ pc camp init rma -d 'new refund feature'
+    == Creating camp71 ==
+    camp71 database snapshot complete
+    camp71 database configured
+    camp71 database started
+    camp71 directory created
+    camp71 repo cloned from project 'rma' repo
+    camp71 repo cloned and pushed to camp71 remote
+    camp71 web vhost config created
+    camp71 web log directory created
+    camp71 web server restarted
+    -- camp71 has been setup at /home/clints/camps/camp71 --
+
+Head on over to the proper camp directory shown above and start working on your code!!
+
+For a more complete rundown of many of the functions in 'pc', please read the USAGE.markdown document.
 
 ## Git Repository ##
 

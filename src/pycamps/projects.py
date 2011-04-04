@@ -30,10 +30,10 @@ class Projects:
         self.admindb = ProjectsDB()
 
     def _send_new_project_email(self, args):
-        print "Project: %s with remote repo: %s, has been activated by %s" % (args.name, args.rcs_remote, args.owner)
+        print "Project: %s with remote repo: %s, has been activated by %s" % (args.name, args.remote, args.owner)
 
     def _send_activate_email(self, args):
-        print "Project %s, with remote repo: %s, failed to activate. Please ensure you can clone the repo and then run 'pc admin project activate %s'" % (args.name, args.rcs_remote, args.name)
+        print "Project %s, with remote repo: %s, failed to activate. Please ensure you can clone the repo and then run 'pc admin project activate %s'" % (args.name, args.remote, args.name)
 
     def _valid_repo(self, project_name, remote_url):
         project_repo = "%s/%s" %(settings.TESTREPO_PATH, project_name)
@@ -76,8 +76,8 @@ class Projects:
             self.owner = args.owner
 
         try:
-            self.proj_id = self.admindb.create_project(args.name, args.desc, args.rcs_remote, 
-                                                    args.db_lv, args.db_lv_snap, args.owner)
+            self.proj_id = self.admindb.create_project(args.name, args.desc, args.remote, 
+                                                    args.lv, args.size, args.owner)
             print "== Adding %s to project list ==" % args.name
             self.activate_project(args)
         except CampError, e:
@@ -87,16 +87,16 @@ class Projects:
     def edit_project(self, args):
         self._admin_check()
         if not args.desc and not args.remote and not args.snap_size and not args.lv:
-            raise CampError("""Please provide one of the following [--desc description] [--remote rcs_url] [--snap-size size] [--lv lvm_path]""")
+            raise CampError("""Please provide one of the following [--desc description] [--remote rcs_url] [--snap-size size] [--lv lv]""")
         else:
-            self.admindb.edit_project(args.name, desc=args.desc, remote=args.remote, lv=args.lv, snap=args.snap_size)
+            self.admindb.edit_project(args.name, desc=args.desc, remote=args.remote, lv=args.lv, snap=args.size)
 
     def activate_project(self, args):
         self._admin_check()
         print """Activating '%s'""" % args.name
         args.owner = self.login
-        args.rcs_remote = self.admindb.get_remote(args.name)
-        if (self._valid_repo(args.name, args.rcs_remote)):
+        args.remote = self.admindb.get_remote(args.name)
+        if (self._valid_repo(args.name, args.remote)):
             self.admindb.activate_project(args.name)
             self._send_new_project_email(args)
         else:
@@ -125,7 +125,7 @@ class Projects:
             print
 
 def main():
-    ca = CampsAdmin()
+    pass
 #    p_id = ca.create_project()
 
 if __name__ == "__main__":

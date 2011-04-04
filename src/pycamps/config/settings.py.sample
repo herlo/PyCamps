@@ -64,7 +64,7 @@ VHOST_CONFIG = """<VirtualHost *:80>
 
 WEB_CONFIG_BASE='httpd/conf.d'
 WEB_CONFIG_FILE='site.conf'
-WEB_DOCROOT='docroot'
+WEB_DOCROOT='shop'
 WEB_LOG_DIR='logs'
 # all developers need to be in this group
 # the httpd process needs to as well
