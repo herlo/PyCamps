@@ -135,6 +135,33 @@ class Camps:
 
         self.db.hooks_poststart()
 
+    def status(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+    
+    def log(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
+    def commit(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
+    def untrack(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
+    def track(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+    
+    def clone(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
+    def unshare(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
+    def share(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
+    def refresh(self, arguments):
+        raise CampError("""Not yet implemented, check back later""")
+
     def stop(self, arguments):
 
         if arguments.id:
@@ -157,7 +184,7 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        print "Stopping database on camp%s" % self.camp_id
+        print "Starting database on camp%s" % self.camp_id
         # clone db lv
         self._start_db()
 
@@ -170,13 +197,21 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        if arguments.db or arguments.all:
+        if arguments.db and arguments.all:
             print """stopping db on camp%d""" % self.camp_id
             self._stop_db()
             print """starting db on camp%d""" % self.camp_id
             self._start_db()
 
-        if arguments.web or arguments.all:
+        if arguments.web:
+            print """restarting web server"""
+            self._restart_web()
+
+        if arguments.all:
+            print """stopping db on camp%d""" % self.camp_id
+            self._stop_db()
+            print """starting db on camp%d""" % self.camp_id
+            self._start_db()
             print """restarting web server"""
             self._restart_web()
 
@@ -211,6 +246,9 @@ class Camps:
         except OSError, e:
             if arguments.force == None:
                 raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
+
+        if arguments.Force == None:
+            self._confirm_remove(arguments)
 
         # remove web configs
         self._remove_web_config()
