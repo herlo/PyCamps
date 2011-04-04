@@ -14,8 +14,9 @@ Contents:
     intro
     install
     tutorial
-    usage_guide
+..    usage_guide
     admin_config_guide
+.. todolist::
 
 Indices and tables
 ==================

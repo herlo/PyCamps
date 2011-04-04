@@ -11,7 +11,7 @@ If this is the first time installing gitolite, please read the very `excellent d
 
 Gitolite can be setup with very basic components, but it does need to have wildcard repos enabled. Once gitolite is installed, please follow these conventions for each project.
 
-The gitolite-admin.conf should have a section for admins. These admins should match the ADMINS section in the settings.py. In addition, two entries should be made for each project::
+The gitolite-admin.conf should have a section for admins. These admins should match the :data:`ADMINS` section in the :mod:`config.settings` module. In addition, two entries should be made for each project::
 
     @admins = clints ags
 
@@ -133,9 +133,9 @@ Once in a while, there is a need to deactivate a particular project.  This is us
 
 Any existing camp can continue to use its own repo, but will not be able to update from the master repo (using pc camp refresh).  
 
-Camps
------
-Now that at least one project has been created and activated, camps can be initialized.  In addition, a camp has many other features, including starting, stopping and restarting the database, restarting the web server, sharing a camp, tracking and pushing files to camp repositories to later be sent to qa, then live.  Using camps is also very simple, just initialize and start working:
+Utilizing Camps
+---------------
+Now that at least one project has been created and activated, camps can be initialized.  In addition, a camp has many other features, including starting, stopping and restarting the database, restarting the web server, sharing a camp, tracking and pushing files to camp repositories to later be sent to qa, then live.  Using camps is also very simple, just initialize and start working.
 
 Initialize a Camp
 ^^^^^^^^^^^^^^^^^
@@ -173,19 +173,75 @@ Commonly, the initial setup will be done for the project with a good baseline st
 
 Open the web browser and point it at http://camp74.example.com/, and assuming the administrator has added the proper dns, the camp should show 'camp74' as content.  If a docroot already exists with proper configuration, the camp should just work(tm).
 
+.. note:: Determining the structure of the code repository is important. An administrator should set the :data:`WEB_DOCROOT` value in the :mod:`config.settings` module to the proper value.
+
 List Camps
 ^^^^^^^^^^
-Another useful thing might be to see what camps are being used.::
+Another useful thing might be to see what camps are being used::
 
     $ pc camp list
     == Camps List ==
     camp74 'applying company theme' (project: community, owner: clints) ACTIVE
     camp76 'adding shipping details' (project: community, owner: kynalya) ACTIVE
 
-Other useful options are -l (long [detail] list) and -i (specific camp id)::
+Other useful options: *-l* (long [detail] list) and *-i* (specific camp id)::
 
     $ pc camp list -l -i 65
     == Camps List ==
     camp65 'no description' (project: rma, owner: kynalya) INACTIVE
    	    [path: /home/kynalya/camps/camp65, remote: None, db host: localhost, db port: 3365]
 
+Start/Stop/Restart Camps
+^^^^^^^^^^^^^^^^^^^^^^^^
+Because of the way that PyCamps is configured, stopping and starting the database is very simple::
+
+    $ pc camp stop
+    Stopping database on camp77
+    camp77 database stopped
+
+A simple process query makes sure it's stopped::
+
+    $ ps -ef | grep camp77 | grep -v grep
+    (no output)
+
+Start the camp again::
+
+    $ pc camp start
+    Starting database on camp77
+    camp77 database started
+
+Make sure it started::
+
+    $ ps -ef | grep camp77 | grep -v grep
+    mysql     7424     1  0 11:57 ?        00:00:00 /usr/libexec/mysqld --datadir=/var/lib/mysql/camp77 --socket=/var/lib/mysql/camp77/mysql.sock 
+    --pid-file=/var/run/mysqld/camp77.pid --user=mysql --port=3377 --log=/var/log/mysqld-77.log --datadir=/var/lib/mysql/camp77 
+    --socket=/var/lib/mysql/camp77/mysql.sock --pid-file=/var/run/mysqld/camp77.pid --user=mysql --port=3377 --log=/var/log/mysqld-77.log 
+    --datadir=/var/lib/mysql/camp77 --socket=/var/lib/mysql/camp77/mysql.sock --pid-file=/var/run/mysqld/camp77.pid --user=mysql --port=3377 
+    --log=/var/log/mysqld-77.log
+
+In addition, restarting the web server can also be done very easily::
+
+    $ pc camp restart --web
+    restarting web server
+    camp77 web server restarted
+
+.. note:: The :option:`--web` option is a must for a web-only restart.  Omitting it will restart both the web and database servers.
+
+.. note:: The web server cannot be stopped by a user. If a configuration issue caused the web server to not restart, it can just simply be restarted again once the issue has been resolved.
+
+Refresh a Camp
+^^^^^^^^^^^^^^
+.. todo:: create/document refresh camp db and/or web server
+
+Camp Sharing
+^^^^^^^^^^^^
+.. todo:: share - give permission to clone a camp
+.. todo::    unshare             remove permission to clone a camp
+.. todo::    clone               clone a shared camp
+
+Camp Revision Control
+^^^^^^^^^^^^^^^^^^^^^
+.. todo::    track               tracked files/dirs
+.. todo::    untrack             before commit, untrack files
+.. todo::    commit              commit tracked files
+.. todo::    log                 show commit log
