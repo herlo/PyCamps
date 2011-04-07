@@ -146,21 +146,6 @@ class Camps:
     def status(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
     
-    def log(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
-
-    def commit(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
-
-    def untrack(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
-
-    def track(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
-    
-    def pull(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
-
     def unshare(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
 
