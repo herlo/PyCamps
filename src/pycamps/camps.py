@@ -28,15 +28,13 @@ class Camps:
 
     'camp_id': each camp *must* have a unique id
     'description': to help identify one camp from another
-    'db_user, db_pass, db_host, db_port': useful for connecting and running queries and the like
+    'db_host', db_port': useful for connecting and running queries and the like
     """
     
     def __init__(self):
     
         """Initializes some basic information about the camp. 
         Username and campsdb instances, for example."""
-    
-        #print arguments
     
         self.login = os.getenv('LOGNAME')
         self.campdb = CampsDB()
@@ -52,7 +50,7 @@ class Camps:
         else:
             return None
 
-    def _create_db(self):
+    def _create_db(self, db_config=True):
 
        self.db = DB(self.project, self.camp_id)
 
@@ -62,7 +60,7 @@ class Camps:
        self.db.hooks_preconfig()
 
        lv_info = self.projdb.get_lv_info(self.project)
-       self.db.clone_db(lv_info)
+       self.db.clone_db(lv_info, db_config)
 
     def _remove_web_config(self):
 
@@ -103,6 +101,16 @@ class Camps:
         self.web.create_config()
         self.web.create_symlink_config()
         self.web.create_log_dir()
+
+    def _pull_master(self, force=False):
+
+        self.project = self.campdb.get_project(self.camp_id)
+
+        print """refreshing the code base from the %s master repository""" % self.project
+        self.web = Web(self.project, self.camp_id)
+        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+        master_url = self.projdb.get_remote(self.project)
+        self.web.pull_from_master(master_url, force)
 
     def _stop_db(self):
 
@@ -150,7 +158,7 @@ class Camps:
     def track(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
     
-    def clone(self, arguments):
+    def pull(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
 
     def unshare(self, arguments):
@@ -159,8 +167,55 @@ class Camps:
     def share(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
 
-    def refresh(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
+    # for web code #
+    # push code to repo
+    # pull in master repo
+    # alert if dirty repo
+
+    # for the db #
+    # stop db 
+    # unmount db
+    # lvremove /dev/db_vg/campname
+    # lv snapshot from camp master
+
+    def refresh(self, args):
+
+        if not args.db and not args.web and not args.all:
+            raise CampError("""Please provide one of the following [--db] [--web] [--all]""")
+
+        if args.db or args.all:
+            # stop db
+            print """stopping db on camp%d""" % self.camp_id
+            self._stop_db()
+            # load app specific hooks for db
+            self.db.hooks_poststop()
+            self.db.hooks_preremove()
+            # probably ought to remove the config from 
+            # /etc/my.cnf at some point 
+            #  this function does nothing atm
+            lv_info = self.projdb.get_lv_info(self.project)
+            self.db.unmount_db(lv_info)
+            self.db.remove_db_lv(lv_info)
+            self.db.hooks_postremove()
+
+            # clone db lv
+            self._create_db(db_config=False)
+            # start db
+            print """starting db on camp%d""" % self.camp_id
+            self.db.start_db()
+            # load app specific hooks for db
+            self.db.hooks_poststart()
+
+        if args.web or args.all:
+            # for web code #
+            # pull in master repo
+
+            # alert if dirty repo
+            #if repo.dirty and not args.force:
+            #    raise CampError("""The camp code is not in a clean state.  Please commit and push any changes or use -f""")
+
+            self._pull_master(args.force)
+            print """code base refreshed"""
 
     def stop(self, arguments):
 
@@ -172,7 +227,7 @@ class Camps:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
         print "Stopping database on camp%s" % self.camp_id
-        # clone db lv
+        # stop db
         self._stop_db()
 
     def start(self, arguments):
@@ -197,7 +252,7 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        if arguments.db and arguments.all:
+        if arguments.db:
             print """stopping db on camp%d""" % self.camp_id
             self._stop_db()
             print """starting db on camp%d""" % self.camp_id

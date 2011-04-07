@@ -28,6 +28,20 @@ class Web:
     def set_camp_info(self, camp_info):
         self.camp_info = camp_info
 
+    def pull_from_master(self, remote_url, force=False):
+
+        self.camppath = self.camp_info['path']
+
+        try:
+            repo = git.Repo(self.camppath)
+            if repo.is_dirty() and not force:
+                raise CampError("""Please commit/stash uncommitted code, or use -f/--force option at your own risk""")
+            repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
+        except AssertionError, e:
+            raise CampError("""Update failed with error: %s""" % e)
+        except IndexError, e:
+            raise CampError("""Update failed with error: %s""" % e)
+
     def clone_docroot(self, remote_url):
 
         self.owner = self.camp_info['owner']
