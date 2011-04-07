@@ -155,6 +155,88 @@ Make a filesystem (recommended ext3 or ext4) on the /dev/db/community Logical Vo
 
     # mkfs -t ext3 -L community_master_db /dev/db/community
 
+The Master Database Instance
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Once the logical volume has been created and formatted, a database instance must be created.  Because this will be the master database, it might be easier to create a clone from the live database. Make sure to scrub the data, and then import the scrubbed data into a newly created database on the Logical Volume. Generally speaking, the root password should be set on the db. Another user should be created which will have all rights on the 'community' database. This example will demonstrate using MySQL::
+
+    # /usr/bin/mysql_install_db --user=mysql --datadir=/var/lib/mysql/community/
+    Installing MySQL system tables...
+    OK
+    Filling help tables...
+    OK
+
+    To start mysqld at boot time you have to copy
+    support-files/mysql.server to the right place for your system
+
+    PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+    To do so, start the server, then issue the following commands:
+
+    /usr/bin/mysqladmin -u root password 'new-password'
+    /usr/bin/mysqladmin -u root -h camps.example.com password 'new-password'
+
+    Alternatively you can run:
+    /usr/bin/mysql_secure_installation
+
+    which will also give you the option of removing the test
+    databases and anonymous user created by default.  This is
+    strongly recommended for production servers.
+
+    See the manual for more instructions.
+
+    You can start the MySQL daemon with:
+    cd /usr ; /usr/bin/mysqld_safe &
+
+    You can test the MySQL daemon with mysql-test-run.pl
+    cd /usr/mysql-test ; perl mysql-test-run.pl
+
+    Please report any problems with the /usr/bin/mysqlbug script!
+
+Once the database is installed, a configuration needs to be added to '*/etc/my.cnf*'::
+
+    # community project
+    [mysqld999]
+    datadir = /var/lib/mysql/community
+    socket = /var/lib/mysql/community/mysql.sock
+    pid-file = /var/run/mysqld/community.pid
+    user = mysql
+    port = 3999
+    log-error=/var/log/mysql.log
+
+Master databases for a project are usually added near the top of the configuration file. The configuration identifier should have a large number (eg. mysqld699), leaving plenting of room for camps, which start at mysqld1 and count up.
+
+Once the configuration is in place, the master database will need to be started::
+
+    # mysqld_multi start 999
+    # ps -ef | grep mysql | grep -v grep
+    .. snip other mysql instances ..
+    mysql    15263     1  1 20:15 pts/5    00:00:00 /usr/libexec/mysqld --datadir=/var/lib/mysql/community 
+    --socket=/var/lib/mysql/community/mysql.sock --pid-file=/var/run/mysqld/community.pid --user=mysql 
+    --port=3999 --log-error=/var/log/mysql.log
+
+Now that the 'community' database is running, create a database schema and a user. The database schema and user will be replicated on all camp clones of this database, something simple will suffice::
+
+    # echo "create database community; grant all on community.* to 'user'@'localhost' identified by \ 
+    'password';" | mysql -u root -P 3999 -S /var/lib/mysql/community/mysql.sock
+    # echo "show databases;" | mysql -u root -P 3999 -S /var/lib/mysql/community/mysql.sock
+    Database
+    information_schema
+    community
+    #mysql50#lost+found
+    mysql
+    test
+
+Import the sql data from live dump::
+
+    # mysql -u root -P 3999 -S /var/lib/mysql/community/mysql.sock community < /tmp/community-20110406.sql
+
+At this point, the 'community' database can be turned off, if desired::
+
+    # mysqld_multi stop 999
+    # ps -ef | grep community | grep -v grep
+    (should be blank)
+
+The 'community' master database instance is complete.
+
 Automounting Database Volumes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Another technology PyCamps takes advantage of is autofs.  Each camp database, including the master camp, is mounted using autofs.
