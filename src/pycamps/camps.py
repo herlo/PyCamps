@@ -207,15 +207,9 @@ class Camps:
             self.db.hooks_poststart()
 
         if args.web or args.all:
-            # for web code #
-            # pull in master repo
-
-            # alert if dirty repo
-            #if repo.dirty and not args.force:
-            #    raise CampError("""The camp code is not in a clean state.  Please commit and push any changes or use -f""")
 
             self._pull_master(args.force)
-            print """code base refreshed"""
+            print """camp%d code base refreshed""" % self.camp_id
 
     def stop(self, arguments):
 
