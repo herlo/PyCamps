@@ -64,6 +64,7 @@ class ProjectsDB():
             if comma:
                 sql += ""","""
             sql += """ db_lv = '%s'""" % lv
+            comma = True
         if snap:
             if comma:
                 sql += ""","""

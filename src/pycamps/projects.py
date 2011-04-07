@@ -86,8 +86,8 @@ class Projects:
 
     def edit_project(self, args):
         self._admin_check()
-        if not args.desc and not args.remote and not args.snap_size and not args.lv:
-            raise CampError("""Please provide one of the following [--desc description] [--remote rcs_url] [--snap-size size] [--lv lv]""")
+        if not args.desc and not args.remote and not args.size and not args.lv:
+            raise CampError("""Please provide one of the following [--desc description] [--remote rcs_url] [--size snap_size] [--lv lv_path]""")
         else:
             self.admindb.edit_project(args.name, desc=args.desc, remote=args.remote, lv=args.lv, snap=args.size)
 

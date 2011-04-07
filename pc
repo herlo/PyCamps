@@ -157,7 +157,7 @@ def main():
     proj_edit.add_argument('--desc', metavar='desc', help='new project description')
     proj_edit.add_argument('--remote', metavar='rcs_url', help='new url to master code repo')
     proj_edit.add_argument('--lv', metavar='lvm_path', help='new logical volume location for master database')
-    proj_edit.add_argument('--size', metavar='snap-size', help='new lvm snapshot size')
+    proj_edit.add_argument('--size', metavar='snap_size', help='new lvm snapshot size')
 #    proj_edit.add_argument('--web', help='new web server', choices=['httpd'], default='httpd')
 #    proj_edit.add_argument('--db', help='new database server', choices=['mysql'], default='mysql')
     proj_edit.set_defaults(func=proj.edit_project)
