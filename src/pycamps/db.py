@@ -45,13 +45,14 @@ class DB:
         self.func.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
 
-    def clone_db(self, lv_infos):
+    def clone_db(self, lv_infos, db_config=True):
         """Clones the campmaster db into a particular camp db
         and adds appropriate configs into the database itself"""
 
         self._clone_db_lvm_snap(lv_infos)
         self._chown_db_path()
-        self._add_db_config()
+        if db_config:
+            self._add_db_config()
 
     def start_db(self):
         result = self.func.command.run("/usr/bin/mysqld_multi start %d" % self.camp_id)
@@ -63,7 +64,7 @@ class DB:
 
     def stop_db(self):
         result = self.func.command.run("/usr/bin/mysqld_multi stop %s" % self.camp_id)
-        time.sleep(5)
+        time.sleep(10)
         result = self.func.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % self.campname)
         if result[settings.FUNC_DB_HOST][0] != 1:
             raise CampError("""Unable to stop db for camp%s, contact an admin\n""" % self.camp_id)

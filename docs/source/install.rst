@@ -28,7 +28,7 @@ PyCamps Install
 Source install is complete. 
 
 Post-Install Configuration
--------------------------
+--------------------------
 
 .. note:: Configurations for anything but Apache Web Server (httpd) and MySQL Database Server (mysqld) are not implemented yet. If you decide to use a different configuration, please consider contributing to PyCamps.
 
