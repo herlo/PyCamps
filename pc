@@ -101,13 +101,15 @@ def main():
 
     # pull from a shared camp
     p_pull = c_sp.add_parser('pull', help='pull source code from a shared camp')
-    p_pull.add_argument('id', type=int, help='shared camp id')
+    p_pull.add_argument('shared_camp_id', type=int, help='shared camp id')
+    p_pull.add_argument('-i', '--id', metavar='id', type=int, help="camp id")
     p_pull.add_argument('-f', '--force', action='store_true', help="don't prompt, just do it")
     p_pull.set_defaults(func=camps.pull)
 
     # push to a shared camp
     p_push = c_sp.add_parser('push', help='push source code to a shared camp, requires RW access')
-    p_push.add_argument('id', type=int, help='shared camp id')
+    p_push.add_argument('shared_camp_id', type=int, help='shared camp id')
+    p_push.add_argument('-i', '--id', metavar='id', type=int, help="camp id")
     p_push.add_argument('-f', '--force', action='store_true', help="don't prompt, just do it")
     p_push.set_defaults(func=camps.push)
 

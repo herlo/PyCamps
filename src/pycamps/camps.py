@@ -42,6 +42,8 @@ class Camps:
         self.camp_id = self._get_camp_id()
         if self.camp_id:
             self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
+        else:
+            self.campname = None
 
     def _get_camp_id(self):
         """Attempt to obtain the camp_id by looking at the basename of the path.  
@@ -51,6 +53,11 @@ class Camps:
             return int(re.split("^%s" % settings.CAMPS_BASENAME, camp_basename)[1])
         else:
             return None
+
+    def _get_campname(self):
+        if not self.campname:
+            self.campname = "%s" % (settings.CAMPS_BASENAME + str(self.camp_id))
+        return self.campname
 
     def _create_db(self, db_config=True):
 
@@ -144,6 +151,23 @@ class Camps:
 
         self.db.hooks_poststart()
 
+    def _push_shared_camp(self, shared_camp_id):
+
+        self.project = self.campdb.get_project(self.camp_id)
+        shared_project = self.campdb.get_project(shared_camp_id)
+
+        if self.project != shared_project:
+            raise CampError("""Camps must be from the same project to be shared""")
+
+        if self.camp_id == shared_camp_id:
+            print """\n** This is silly, you own this camp.  Just use 'git push' going forward, it'll save you typing. **\n"""
+
+        self.web = Web(self.project, self.camp_id)
+        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+        print """pushing code to shared %s""" % (settings.CAMPS_BASENAME + str(shared_camp_id))
+        camp_url = self.campdb.get_remote(shared_camp_id)
+        self.web.push_or_pull_shared_camp("""%s""" % (settings.CAMPS_BASENAME + str(shared_camp_id)), camp_url, 'push')
+
     def _pull_shared_camp(self, shared_camp_id):
 
         self.project = self.campdb.get_project(self.camp_id)
@@ -152,11 +176,14 @@ class Camps:
         if self.project != shared_project:
             raise CampError("""Camps must be from the same project to be shared""")
 
+        if self.camp_id == shared_camp_id:
+            print """\n** This is silly, you own this camp.  Just use 'git pull origin master' going forward. **\n"""
+
         self.web = Web(self.project, self.camp_id)
         self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
         print """pulling in code from shared camp%d""" % shared_camp_id
         camp_url = self.campdb.get_remote(shared_camp_id)
-        self.web.pull_shared_camp("""%s""" % (settings.CAMPS_BASENAME + str(shared_camp_id)), camp_url)
+        self.web.push_or_pull_shared_camp("""%s""" % (settings.CAMPS_BASENAME + str(shared_camp_id)), camp_url, 'pull')
 
     def _share_camp(self):
 
@@ -198,22 +225,36 @@ class Camps:
         raise CampError("""Not yet implemented, check back later""")
 
     # push to shared camp
-    def push(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
+    def push(self, args):
+
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        if not args.force:
+            self._validate_action("Pushing to shared repo for %s" % self._get_campname())
+
+        self._push_shared_camp(args.shared_camp_id)
+        print """push to %s complete""" % (settings.CAMPS_BASENAME + str(args.shared_camp_id))
 
     # pull from shared camp
     def pull(self, args):
 
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
         if not args.force:
             self._validate_action("Pulling from a shared camp may require manually merging code")
 
-        self.camp_id = self._get_camp_id()
-
-        if not self.camp_id:
-            raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
-
-        self._pull_shared_camp(args.id)
-        print """pull from %s complete""" % (settings.CAMPS_BASENAME + str(args.id))
+        self._pull_shared_camp(args.shared_camp_id)
+        print """pull from %s complete""" % (settings.CAMPS_BASENAME + str(args.shared_camp_id))
 
     def unshare(self, args):
 
@@ -227,11 +268,11 @@ class Camps:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
         if not args.force:
-            self._validate_action("Removing shared access to %s for %s" % (self.campname, self.user))
+            self._validate_action("Removing shared access to %s for %s" % (self._get_campname(), self.user))
 
         # share camp
         self._unshare_camp()
-        print """Sharing for user '%s' has been removed from %s""" % (self.user, self.campname)
+        print """Sharing for user '%s' has been removed from %s""" % (self.user, self._get_campname())
 
     def share(self, args):
 
@@ -249,10 +290,11 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
+        self._get_campname()
         print "Sharing %s with %s permissions for %s" % (self.campname, self.perms, self.user)
         # share camp
         self._share_camp()
-        print "%s is now shared with %s permissions for %s" % (self.campname, self.perms, self.user)
+        print "%s is now shared with %s permissions for %s" % (self._get_campname(), self.perms, self.user)
 
     # for web code #
     # push code to repo
@@ -273,7 +315,7 @@ class Camps:
         if args.db or args.all:
 
             if not args.force:
-                self._validate_action("A refresh will destroy any database changes for %s" % (self.campname))
+                self._validate_action("A refresh will destroy any database changes for %s" % (self._get_campname()))
 
             # stop db
             print """stopping db on camp%d""" % self.camp_id
@@ -303,7 +345,7 @@ class Camps:
                 self._validate_action("A refresh may require manually merging code")
 
             self._pull_master(args.force)
-            print """%s code base refreshed""" % self.campname
+            print """%s code base refreshed""" % self._get_campname()
 
     def stop(self, arguments):
 
@@ -314,7 +356,7 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        print "Stopping database on %s" % self.campname
+        print "Stopping database on %s" % self._get_campname()
         # stop db
         self._stop_db()
 
@@ -388,7 +430,7 @@ class Camps:
                     raise CampError("""A camp can only be removed by its owner or an admin.""")
         except OSError, e:
             if arguments.force == None:
-                raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, self.campname))
+                raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, self._get_campname()))
 
         if arguments.Force == None:
             self._confirm_remove(arguments)

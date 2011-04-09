@@ -121,7 +121,7 @@ class Web:
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
 
-    def pull_shared_camp(self, camp_to_pull, rcs_remote):
+    def push_or_pull_shared_camp(self, shared_camp, rcs_remote, action):
 
         self.camppath = self.camp_info['path']
         self.owner = self.camp_info['owner']
@@ -137,22 +137,29 @@ class Web:
             raise CampError("""Update failed with error: %s""" % e)
 
         self._set_ssh_client(rcs_remote)
-        self._get_camp_access(camp_to_pull)
+        self._get_camp_access(shared_camp)
 
-        if not len(self.perm_list) or self.perm_list[0] != 'R':
-            raise CampError("""Update failed, READ access for %s DENIED to %s""" % (camp_to_pull, self.owner))
+        if action == 'pull':
+            if not len(self.perm_list) or self.perm_list[0] != 'R':
+                raise CampError("""Update failed, READ access for %s DENIED to %s""" % (shared_camp, self.owner))
+        if action == 'push':
+            if not len(self.perm_list) or self.perm_list[1] != 'W':
+                raise CampError("""Update failed, WRITE access for %s DENIED to %s""" % (shared_camp, self.owner))
 
         add_remote = True
         for r in repo.remotes:
-            if str(r) == camp_to_pull:
+            if str(r) == shared_camp:
                 add_remote = False
                 break
 
         if add_remote:
-            repo.create_remote(camp_to_pull, rcs_remote)
+            repo.create_remote(shared_camp, rcs_remote)
 
         try:
-            repo.remotes[camp_to_pull].pull('refs/heads/master:refs/heads/master')
+            if action == 'pull':
+                repo.remotes[shared_camp].pull('refs/heads/master:refs/heads/master')
+            if action == 'push':
+                repo.remotes[shared_camp].push('refs/heads/master:refs/heads/master')
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
         except AssertionError, e:
