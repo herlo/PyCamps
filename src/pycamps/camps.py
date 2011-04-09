@@ -69,8 +69,7 @@ class Camps:
         print """refreshing the code base from the %s master repository""" % self.project
         self.web = Web(self.project, self.camp_id)
         self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
-        master_url = self.projdb.get_remote(self.project)
-        self.web.pull_from_master(master_url, force)
+        self.web.pull_from_master(force)
 
     def _remove_web_config(self):
 
@@ -143,6 +142,20 @@ class Camps:
 
         self.db.hooks_poststart()
 
+    def _pull_shared_camp(self, shared_camp_id):
+
+        self.project = self.campdb.get_project(self.camp_id)
+        shared_project = self.campdb.get_project(shared_camp_id)
+
+        if self.project != shared_project:
+            raise CampError("""Camps must be from the same project to be shared""")
+
+        self.web = Web(self.project, self.camp_id)
+        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+        print """pulling in code from shared camp%d""" % shared_camp_id
+        camp_url = self.campdb.get_remote(shared_camp_id)
+        self.web.pull_shared_camp("""%s""" % (settings.CAMPS_BASENAME + str(shared_camp_id)), camp_url)
+
     def _share_camp(self):
 
         self.project = self.campdb.get_project(self.camp_id)
@@ -159,11 +172,37 @@ class Camps:
 
         self.web.unshare_camp(self.user)
 
-    def status(self, arguments):
+    def _validate_action(self, action):
+
+        print action
+        y_n = 'N'
+
+        yes_no = raw_input("""Is this okay [y/N]: """)
+
+        if len(yes_no) == 0:
+            raise CampError("""Exiting on user request""")
+        if len(yes_no) == 1:
+            try:
+                y_n = str(yes_no).upper()
+            except Exception, e:
+                raise CampError("""Bad input""")
+
+            if y_n == 'Y':
+                return
+            else:
+                raise CampError("""Exiting on user request""")
+
+    def status(self, args):
         raise CampError("""Not yet implemented, check back later""")
 
-    def pull(self, arguments):
+    # push to shared camp
+    def push(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
+
+    # pull from shared camp
+    def pull(self, args):
+        self._pull_shared_camp(args.id)
+        print """pull from %s complete""" % (settings.CAMPS_BASENAME + str(self.camp_id))
 
     def unshare(self, args):
 
@@ -176,9 +215,10 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        print "Removing sharing from camp%d for %s" % (self.camp_id, self.user)
+        self._validate_action("Removing shared access to camp%d for %s" % (self.camp_id, self.user))
         # share camp
         self._unshare_camp()
+        print """Sharing for user '%s' has been removed from %s""" % (self.user, (settings.CAMPS_BASENAME + str(self.camp_id)))
 
     def share(self, args):
 
@@ -196,9 +236,10 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        print "Sharing camp%s with %s permissions for %s" % (self.camp_id, self.perms, self.user)
+        print "Sharing %s with %s permissions for %s" % ((settings.CAMPS_BASENAME + str(self.camp_id)), self.perms, self.user)
         # share camp
         self._share_camp()
+        print "%s is now shared with %s permissions for %s" % ((settings.CAMPS_BASENAME + str(self.camp_id)), self.perms, self.user)
 
     # for web code #
     # push code to repo

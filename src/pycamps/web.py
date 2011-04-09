@@ -52,13 +52,11 @@ class Web:
             self.perm_list.pop(user, None)
         else:
             # add/overwrite current perms
-            print "setting %s with perms '%s'" % (user, perm)
             self.perm_list[user] = perm
 
         # writing perms should be input like so
         # ['R kynalya\n', 'RW herlo\n']
 
-        print "PERMS: %s" % str(self.perm_list)
         for key in self.perm_list.keys():
             stdin.write("""%s %s\n""" % (self.perm_list[key], key))
 
@@ -68,9 +66,15 @@ class Web:
         stdout.close()
         stderr.close()
 
-    def _set_ssh_client(self):
+    def _set_ssh_client(self, rcs_remote=None):
 
-        self.host_info, self.rcs_remote = self.camp_info['rcs_remote'].split(':')
+        if not rcs_remote:
+            self.host_info, self.rcs_remote = self.camp_info['rcs_remote'].split(':')
+        else:
+            print "RCS: %s " % rcs_remote
+            self.host_info, self.rcs_remote = rcs_remote.split(':')
+            print "host: %s, remote: %s" % (self.host_info, self.rcs_remote)
+
         self.git_user, self.git_host = self.host_info.split('@')
 
         self.sshclient = paramiko.SSHClient()
@@ -81,10 +85,8 @@ class Web:
 
         self._set_ssh_client()
 
-        print "getting perms for host %s for camp remote %s" % (self.git_host, self.rcs_remote)
         self._get_camp_sharing()
 
-        print "unsharing %s from camp%d" % (user, self.camp_id)
         self._set_camp_sharing(user, None, True)
 
         self.sshclient.close()
@@ -93,15 +95,13 @@ class Web:
 
         self._set_ssh_client()
 
-        print "getting perms for host %s for camp remote %s" % (self.git_host, self.rcs_remote)
         self._get_camp_sharing()
 
-        print "setting perms for host %s for camp remote %s" % (self.git_host, self.rcs_remote)
         self._set_camp_sharing(user, perms)
 
         self.sshclient.close()
 
-    def pull_from_master(self, remote_url, force=False):
+    def pull_from_master(self, force=False):
 
         self.camppath = self.camp_info['path']
 
@@ -114,6 +114,41 @@ class Web:
             raise CampError("""Update failed with error: %s""" % e)
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
+
+    def pull_shared_camp(self, camp_to_pull, rcs_remote):
+
+        self.camppath = self.camp_info['path']
+        self.owner = self.camp_info['owner']
+
+        try:
+            repo = git.Repo(self.camppath)
+            if repo.is_dirty() and not force:
+                raise CampError("""Please commit/stash uncommitted code, or use -f/--force option at your own risk""")
+        except AssertionError, e:
+            if e and str(e) != '':
+                raise CampError("""Update failed with error: %s""" % e)
+        except IndexError, e:
+            raise CampError("""Update failed with error: %s""" % e)
+
+        add_remote = True
+        for r in repo.remotes:
+            if str(r) == camp_to_pull:
+                add_remote = False
+                break
+
+        if add_remote:
+            repo.create_remote(camp_to_pull, rcs_remote)
+
+        try:
+            repo.remotes[camp_to_pull].pull('refs/heads/master:refs/heads/master')
+        except IndexError, e:
+            raise CampError("""Update failed with error: %s""" % e)
+        except AssertionError, e:
+            # odds are that unless the exception 'e' has a value
+            # the assertionerror is wrong.  Usually, this is because
+            # gitPython shows a warning, not an actual error
+            if e and len(str(e)) != 0:
+                raise CampError("""Update failed with error: %s""" % e)
 
     def clone_docroot(self, remote_url):
 
