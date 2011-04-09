@@ -40,6 +40,8 @@ class Camps:
         self.campdb = CampsDB()
         self.projdb = ProjectsDB()
         self.camp_id = self._get_camp_id()
+        if self.camp_id:
+            self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
 
     def _get_camp_id(self):
         """Attempt to obtain the camp_id by looking at the basename of the path.  
@@ -201,8 +203,10 @@ class Camps:
 
     # pull from shared camp
     def pull(self, args):
+        if not args.force:
+            self._validate_action("Pulling from a shared camp may require manually merging code")
         self._pull_shared_camp(args.id)
-        print """pull from %s complete""" % (settings.CAMPS_BASENAME + str(self.camp_id))
+        print """pull from %s complete""" % (settings.CAMPS_BASENAME + str(args.id))
 
     def unshare(self, args):
 
@@ -215,10 +219,12 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        self._validate_action("Removing shared access to camp%d for %s" % (self.camp_id, self.user))
+        if not args.force:
+            self._validate_action("Removing shared access to %s for %s" % (self.campname, self.user))
+
         # share camp
         self._unshare_camp()
-        print """Sharing for user '%s' has been removed from %s""" % (self.user, (settings.CAMPS_BASENAME + str(self.camp_id)))
+        print """Sharing for user '%s' has been removed from %s""" % (self.user, self.campname)
 
     def share(self, args):
 
@@ -236,10 +242,10 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        print "Sharing %s with %s permissions for %s" % ((settings.CAMPS_BASENAME + str(self.camp_id)), self.perms, self.user)
+        print "Sharing %s with %s permissions for %s" % (self.campname, self.perms, self.user)
         # share camp
         self._share_camp()
-        print "%s is now shared with %s permissions for %s" % ((settings.CAMPS_BASENAME + str(self.camp_id)), self.perms, self.user)
+        print "%s is now shared with %s permissions for %s" % (self.campname, self.perms, self.user)
 
     # for web code #
     # push code to repo
@@ -258,6 +264,10 @@ class Camps:
             raise CampError("""Please provide one of the following [--db] [--web] [--all]""")
 
         if args.db or args.all:
+
+            if not args.force:
+                self._validate_action("A refresh will destroy any database changes for %s" % (self.campname))
+
             # stop db
             print """stopping db on camp%d""" % self.camp_id
             self._stop_db()
@@ -282,8 +292,11 @@ class Camps:
 
         if args.web or args.all:
 
+            if not args.force:
+                self._validate_action("A refresh may require manually merging code")
+
             self._pull_master(args.force)
-            print """camp%d code base refreshed""" % self.camp_id
+            print """%s code base refreshed""" % self.campname
 
     def stop(self, arguments):
 
@@ -294,7 +307,7 @@ class Camps:
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        print "Stopping database on camp%s" % self.camp_id
+        print "Stopping database on %s" % self.campname
         # stop db
         self._stop_db()
 
@@ -368,7 +381,7 @@ class Camps:
                     raise CampError("""A camp can only be removed by its owner or an admin.""")
         except OSError, e:
             if arguments.force == None:
-                raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, settings.CAMPS_BASENAME + str(camp_id)) )
+                raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, self.campname))
 
         if arguments.Force == None:
             self._confirm_remove(arguments)

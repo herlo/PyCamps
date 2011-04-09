@@ -149,6 +149,8 @@ class Web:
             # gitPython shows a warning, not an actual error
             if e and len(str(e)) != 0:
                 raise CampError("""Update failed with error: %s""" % e)
+            else:
+                raise CampError("""Update failed, READ access for %s DENIED to %s""" % (camp_to_pull, self.owner))
 
     def clone_docroot(self, remote_url):
 
