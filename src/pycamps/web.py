@@ -29,15 +29,13 @@ class Web:
     def set_camp_info(self, camp_info):
         self.camp_info = camp_info
 
-    def _get_camp_sharing(self):
+    def _get_camp_access(self, camp_name):
 
-        stdin, stdout, stderr = self.sshclient.exec_command("""getperms %s""" % self.rcs_remote)
+        stdin, stdout, stderr = self.sshclient.exec_command("""expand %s""" % camp_name)
 
-        self.perm_list = {}
-
-        for line in stdout.read().splitlines():
-            perm, user = line.split(' ')
-            self.perm_list[user] = perm
+        self.perm_list = []
+        for line in stdout.read().splitlines()[2:]:
+            self.perm_list = line.split('\t')[0].strip().split('  ')
 
         stdin.close()
         stdout.close()
@@ -66,14 +64,22 @@ class Web:
         stdout.close()
         stderr.close()
 
+    def _get_camp_sharing(self):
+
+        stdin, stdout, stderr = self.sshclient.exec_command("""getperms %s""" % self.rcs_remote)
+
+        self.perm_list = {}
+
+        for line in stdout.read().splitlines():
+            perm, user = line.split(' ')
+            self.perm_list[user] = perm
+
     def _set_ssh_client(self, rcs_remote=None):
 
         if not rcs_remote:
             self.host_info, self.rcs_remote = self.camp_info['rcs_remote'].split(':')
         else:
-            print "RCS: %s " % rcs_remote
             self.host_info, self.rcs_remote = rcs_remote.split(':')
-            print "host: %s, remote: %s" % (self.host_info, self.rcs_remote)
 
         self.git_user, self.git_host = self.host_info.split('@')
 
@@ -130,6 +136,12 @@ class Web:
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
 
+        self._set_ssh_client(rcs_remote)
+        self._get_camp_access(camp_to_pull)
+
+        if not len(self.perm_list) or self.perm_list[0] != 'R':
+            raise CampError("""Update failed, READ access for %s DENIED to %s""" % (camp_to_pull, self.owner))
+
         add_remote = True
         for r in repo.remotes:
             if str(r) == camp_to_pull:
@@ -149,8 +161,6 @@ class Web:
             # gitPython shows a warning, not an actual error
             if e and len(str(e)) != 0:
                 raise CampError("""Update failed with error: %s""" % e)
-            else:
-                raise CampError("""Update failed, READ access for %s DENIED to %s""" % (camp_to_pull, self.owner))
 
     def clone_docroot(self, remote_url):
 

@@ -203,8 +203,15 @@ class Camps:
 
     # pull from shared camp
     def pull(self, args):
+
         if not args.force:
             self._validate_action("Pulling from a shared camp may require manually merging code")
+
+        self.camp_id = self._get_camp_id()
+
+        if not self.camp_id:
+            raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
         self._pull_shared_camp(args.id)
         print """pull from %s complete""" % (settings.CAMPS_BASENAME + str(args.id))
 
