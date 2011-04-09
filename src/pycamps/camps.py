@@ -62,6 +62,16 @@ class Camps:
        lv_info = self.projdb.get_lv_info(self.project)
        self.db.clone_db(lv_info, db_config)
 
+    def _pull_master(self, force=False):
+
+        self.project = self.campdb.get_project(self.camp_id)
+
+        print """refreshing the code base from the %s master repository""" % self.project
+        self.web = Web(self.project, self.camp_id)
+        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+        master_url = self.projdb.get_remote(self.project)
+        self.web.pull_from_master(master_url, force)
+
     def _remove_web_config(self):
 
         # set the project info
@@ -102,16 +112,6 @@ class Camps:
         self.web.create_symlink_config()
         self.web.create_log_dir()
 
-    def _pull_master(self, force=False):
-
-        self.project = self.campdb.get_project(self.camp_id)
-
-        print """refreshing the code base from the %s master repository""" % self.project
-        self.web = Web(self.project, self.camp_id)
-        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
-        master_url = self.projdb.get_remote(self.project)
-        self.web.pull_from_master(master_url, force)
-
     def _stop_db(self):
 
         self.project = self.campdb.get_project(self.camp_id)
@@ -143,14 +143,62 @@ class Camps:
 
         self.db.hooks_poststart()
 
+    def _share_camp(self):
+
+        self.project = self.campdb.get_project(self.camp_id)
+        self.web = Web(self.project, self.camp_id)
+        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+
+        self.web.share_camp(self.user, self.perms)
+
+    def _unshare_camp(self):
+
+        self.project = self.campdb.get_project(self.camp_id)
+        self.web = Web(self.project, self.camp_id)
+        self.web.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+
+        self.web.unshare_camp(self.user)
+
     def status(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
-    
-    def unshare(self, arguments):
+
+    def pull(self, arguments):
         raise CampError("""Not yet implemented, check back later""")
 
-    def share(self, arguments):
-        raise CampError("""Not yet implemented, check back later""")
+    def unshare(self, args):
+
+        self.user = args.user
+
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        print "Removing sharing from camp%d for %s" % (self.camp_id, self.user)
+        # share camp
+        self._unshare_camp()
+
+    def share(self, args):
+
+        self.user = args.user
+
+        if args.perms:
+            self.perms = args.perms
+        else:
+            self.perms = 'R'
+
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        print "Sharing camp%s with %s permissions for %s" % (self.camp_id, self.perms, self.user)
+        # share camp
+        self._share_camp()
 
     # for web code #
     # push code to repo

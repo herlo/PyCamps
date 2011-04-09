@@ -54,7 +54,7 @@ WEB_DELIVERY='VHOST' #other option is ALIAS
 # web config entries for each vhost
 VHOST_CONFIG = """<VirtualHost *:80>
     ServerAdmin webmaster@camp%(camp_id)d.example.com
-    DocumentRoot %(camppath)s/docroot
+    DocumentRoot %(camppath)s/
     ServerName camp%(camp_id)d.example.com
     ServerAlias camp%(camp_id)d
     ErrorLog %(camppath)s/logs/camp%(camp_id)d-error_log

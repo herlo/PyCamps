@@ -4,6 +4,7 @@ import grp
 import time
 import stat
 import shutil
+import paramiko
 
 #import re
 #import time
@@ -27,6 +28,78 @@ class Web:
 
     def set_camp_info(self, camp_info):
         self.camp_info = camp_info
+
+    def _get_camp_sharing(self):
+
+        stdin, stdout, stderr = self.sshclient.exec_command("""getperms %s""" % self.rcs_remote)
+
+        self.perm_list = {}
+
+        for line in stdout.read().splitlines():
+            perm, user = line.split(' ')
+            self.perm_list[user] = perm
+
+        stdin.close()
+        stdout.close()
+        stderr.close()
+
+    def _set_camp_sharing(self, user, perm, remove=False):
+
+        stdin, stdout, stderr = self.sshclient.exec_command("""setperms %s""" % self.rcs_remote)
+
+        if remove:
+            # remove the rights
+            self.perm_list.pop(user, None)
+        else:
+            # add/overwrite current perms
+            print "setting %s with perms '%s'" % (user, perm)
+            self.perm_list[user] = perm
+
+        # writing perms should be input like so
+        # ['R kynalya\n', 'RW herlo\n']
+
+        print "PERMS: %s" % str(self.perm_list)
+        for key in self.perm_list.keys():
+            stdin.write("""%s %s\n""" % (self.perm_list[key], key))
+
+        stdin.flush()
+
+        stdin.close()
+        stdout.close()
+        stderr.close()
+
+    def _set_ssh_client(self):
+
+        self.host_info, self.rcs_remote = self.camp_info['rcs_remote'].split(':')
+        self.git_user, self.git_host = self.host_info.split('@')
+
+        self.sshclient = paramiko.SSHClient()
+        self.sshclient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.sshclient.connect(self.git_host, username=self.git_user)
+
+    def unshare_camp(self, user):
+
+        self._set_ssh_client()
+
+        print "getting perms for host %s for camp remote %s" % (self.git_host, self.rcs_remote)
+        self._get_camp_sharing()
+
+        print "unsharing %s from camp%d" % (user, self.camp_id)
+        self._set_camp_sharing(user, None, True)
+
+        self.sshclient.close()
+
+    def share_camp(self, user, perms):
+
+        self._set_ssh_client()
+
+        print "getting perms for host %s for camp remote %s" % (self.git_host, self.rcs_remote)
+        self._get_camp_sharing()
+
+        print "setting perms for host %s for camp remote %s" % (self.git_host, self.rcs_remote)
+        self._set_camp_sharing(user, perms)
+
+        self.sshclient.close()
 
     def pull_from_master(self, remote_url, force=False):
 
