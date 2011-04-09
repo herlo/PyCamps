@@ -87,50 +87,31 @@ def main():
     
     # share a camp
     p_share = c_sp.add_parser('share', help='give permission to clone a camp')
-    p_share.add_argument('-i', '--id', help='camp id')
-    p_share.add_argument('-u', '--user', help='user with which to share camp')
+    p_share.add_argument('-i', '--id', metavar='id', help='camp id')
+    p_share.add_argument('user', help='user with which to share camp')
+    p_share.add_argument('perms', nargs='?', default='R', choices=['R','RW'], help='perms to grant for camp')
     p_share.set_defaults(func=camps.share)
 
     # unshare a camp
     p_unshare = c_sp.add_parser('unshare', help='remove permission to clone a camp')
-    p_unshare.add_argument('-i', '--id', help='camp id')
-    p_unshare.add_argument('-u', '--user', help='user to remove from camp sharing')
+    p_unshare.add_argument('-i', '--id', metavar='id', help='camp id')
+    p_unshare.add_argument('user', help='user to remove from camp sharing')
     p_unshare.set_defaults(func=camps.unshare)
 
-    # clone a shared camp
-    p_pull = c_sp.add_parser('pull', help='pull in source code from a shared camp')
+    # pull from a shared camp
+    p_pull = c_sp.add_parser('pull', help='pull source code from a shared camp')
     p_pull.add_argument('id', help='camp # (if not in camp dir)')
     p_pull.set_defaults(func=camps.pull)
 
-    # add files to be tracked by scm
-    p_track = c_sp.add_parser('track', help='tracked files/dirs')
-    p_track.add_argument('-i', '--id', help='camp id')
-    p_track.add_argument('files', nargs='+', help='list of files/dirs to be tracked')
-    p_track.set_defaults(func=camps.track)
+    # push to a shared camp
+    p_push = c_sp.add_parser('push', help='push source code to a shared camp, requires RW access')
+    p_push.add_argument('id', help='camp # (if not in camp dir)')
+    p_push.set_defaults(func=camps.push)
 
-    # remove files to be tracked by scm
-    p_untrack = c_sp.add_parser('untrack', help='before commit, untrack files')
-    p_untrack.add_argument('-i', '--id', help='camp id')
-    p_untrack.add_argument('files', nargs='+', help='list of files to be untracked')
-    p_untrack.set_defaults(func=camps.untrack)
-
-    # commit and push tracked files
-    p_commit = c_sp.add_parser('commit', help='commit tracked files')
-    p_commit.add_argument('-i', '--id', help='camp id')
-    p_commit.add_argument('-m', '--msg', metavar='msg', help='commit message')
-    p_commit.set_defaults(func=camps.commit)
-
-    # show commit log
-    p_log = c_sp.add_parser('log', help='show commit log')
-    p_log.add_argument('-i', '--id', help='camp id')
-    p_log.add_argument('-n', '--num', metavar='num', help='number of messages to show')
-    p_log.set_defaults(func=camps.log)
-
-    # show current status of camp
-    p_status = c_sp.add_parser('status', help='show camp status')
-    p_status.add_argument('-i', '--id', help='camp id')
+    # push to a shared camp
+    p_status = c_sp.add_parser('status', help='get status of camp')
+    p_status.add_argument('id', help='camp # (if not in camp dir)')
     p_status.set_defaults(func=camps.status)
-
     ########################
     # project stuff        #
     ########################
