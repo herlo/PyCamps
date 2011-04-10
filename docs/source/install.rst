@@ -4,6 +4,19 @@ The installation of PyCamps is a bit arduous and time-consuming.  The hope is to
 
 .. warning:: Some of the concepts listed here require understanding of concepts elsewhere in this documentation. Please read the entire documention before beginning installation.
 
+Dependencies
+------------
+
+* Gitolite >= 1.5.3 (https://github.com/sitaramc/gitolite)
+* Autofs >= 5.0.1 (http://www.autofs.org/)
+* LVM2 (for database snapshots)
+* Apache Web Server >= 2.2 (http://httpd.apache.org)
+* MySQL Database Server >= 5.1.52 (http://mysql.com)
+* git-python = 0.2x (http://gitorious.org/projects/git-python/)
+* sqlite >= 3.0 (http://www.sqlite.org/)
+* python-sqlite2 >= 2.3.3 (http://www.sqlite.org/)
+* python-paramiko >= 1.7.6 (http://www.sqlite.org/)
+
 Get the Source Code
 -------------------
 Get the latest tarball from github::
@@ -35,18 +48,6 @@ Post-Install Configuration
 .. warning:: **DO NOT INSTALL A WEB SERVER OR DATABASE UNTIL ALL OF THE ITEMS BELOW ARE COMPLETED.**
 
 Before beginning, PyCamps will need the following items configured. For each project managed with PyCamps, a master database must be created as well as a central gitolite repository. 
-
-Dependencies
-------------
-
-* Gitolite >= 1.5.3 (https://github.com/sitaramc/gitolite)
-* Autofs >= 5.0.1 (http://www.autofs.org/)
-* LVM2 (for database snapshots)
-* Apache Web Server >= 2.2 (http://httpd.apache.org)
-* MySQL Database Server >= 5.1.52 (http://mysql.com)
-* git-python 0.2x (http://gitorious.org/projects/git-python/)
-* sqlite 3.0 (http://www.sqlite.org/)
-* python-sqlite2 2.3.3 (http://www.sqlite.org/)
 
 Assumptions
 -----------

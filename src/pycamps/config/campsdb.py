@@ -86,6 +86,9 @@ class CampsDB:
     def get_owner(self, camp_id):
         return self.get_camp_info(camp_id)['owner']
 
+    def get_remote(self, camp_id):
+        return self.get_camp_info(camp_id)['rcs_remote']
+
     def get_project(self, camp_id):
         return self.get_camp_info(camp_id)['proj']
 
