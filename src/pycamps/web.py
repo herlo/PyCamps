@@ -140,10 +140,15 @@ class Web:
         self._get_camp_access(shared_camp)
 
         if action == 'pull':
-            if not len(self.perm_list) or self.perm_list[0] != 'R':
+            if not self.perm_list:
                 raise CampError("""Update failed, READ access for %s DENIED to %s""" % (shared_camp, self.owner))
+            if not self.perm_list.count('R'):
+                raise CampError("""Update failed, READ access for %s DENIED to %s""" % (shared_camp, self.owner))
+
         if action == 'push':
-            if not len(self.perm_list) or self.perm_list[1] != 'W':
+            if not self.perm_list:
+                raise CampError("""Update failed, WRITE access for %s DENIED to %s""" % (shared_camp, self.owner))
+            if not self.perm_list.count('W'):
                 raise CampError("""Update failed, WRITE access for %s DENIED to %s""" % (shared_camp, self.owner))
 
         add_remote = True
