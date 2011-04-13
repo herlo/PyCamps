@@ -17,6 +17,16 @@ Dependencies
 * python-sqlite2 >= 2.3.3 (http://www.sqlite.org/)
 * python-paramiko >= 1.7.6 (http://www.sqlite.org/)
 
+Assumptions
+-----------
+First thing, this install guide can refer to outside material often. Please take the time to read and understand at least the basics of each application used in PyCamps. It is imperative to a successful installation.
+
+As described in the :doc:`intro` document. PyCamps has both projects and camps. The goal of this installation guide is to setup and configure first, the Project(s) for which the camps will be using, and second, the environment in which the camps will reside. Simplicity is attempted at every turn, though sometimes, it is impossible. 
+
+In this documentation, the Project will be called '**community**'. Its source code repository will reside at '**git\@git.example.com:community/master**'. The community project will have a Logical Volume (LV) defined as '**/dev/db/community**'. These conventions will be used throughout this document.
+
+Camps are named by ID and customarily called 'camp1', 'camp2', etc. Each camp corresponds to one and only one project, but also has its own source code repository. In this document, 'camp1' source code will reside in /home/clints/camps/camp1 and its corresponding source code repository will reside at 'git\@git.example.com:community/camp1'. If camp2 were created, its source code would reside in /home/clints/camps/camp1 and source code repository will reside at 'git\@git.example.com:community/camp2'. Hopefully, it's clear enough from these examples what camp3, camp4, etc. would look like.  The :doc:`tutorial </tutorial>` discusses more about how camps and projects relate.
+
 Get the Source Code
 -------------------
 Get the latest tarball from github::
@@ -47,17 +57,6 @@ Post-Install Configuration
 
 .. warning:: **DO NOT INSTALL A WEB SERVER OR DATABASE UNTIL ALL OF THE ITEMS BELOW ARE COMPLETED.**
 
-Before beginning, PyCamps will need the following items configured. For each project managed with PyCamps, a master database must be created as well as a central gitolite repository. 
-
-Assumptions
------------
-First thing, this install guide can refer to outside material often. Please take the time to read and understand at least the basics of each application used in PyCamps. It is imperative to a successful installation.
-
-As described in the :doc:`intro` document. PyCamps has both projects and camps. The goal of this installation guide is to setup and configure first, the Project(s) for which the camps will be using, and second, the environment in which the camps will reside. Simplicity is attempted at every turn, though sometimes, it is impossible. 
-
-In this documentation, the Project will be called '**community**'. Its source code repository will reside at '**git\@git.example.com:community/master**'. The community project will have a Logical Volume (LV) defined as '**/dev/db/community**'. These conventions will be used throughout this document. 
-
-Camps are named by ID and customarily called 'camp1', 'camp2', etc. Each camp corresponds to one and only one project, but also has its own source code repository. In this document, 'camp1' source code will reside in /home/clints/camps/camp1 and its corresponding source code repository will reside at 'git\@git.example.com:community/camp1'. If camp2 were created, its source code would reside in /home/clints/camps/camp1 and source code repository will reside at 'git\@git.example.com:community/camp2'. Hopefully, it's clear enough from these examples what camp3, camp4, etc. would look like.  The :doc:`tutorial </tutorial>` discusses more about how camps and projects relate.
 
 Setting up the PyCamps Server(s)
 --------------------------------
