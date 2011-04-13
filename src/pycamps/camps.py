@@ -441,30 +441,25 @@ class Camps:
         # clone db lv
         self._start_db()
 
-    def restart(self, arguments):
+    def restart(self, args):
 
-        if arguments.id:
-            self.camp_id = arguments.id
+        if not args.db and not args.web and not args.all:
+            args.all = True
+
+        if args.id:
+            self.camp_id = args.id
         else:
             self.camp_id = self._get_camp_id()
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        if arguments.db:
+        if args.db or args.all:
             print """stopping db on camp%d""" % self.camp_id
             self._stop_db()
             print """starting db on camp%d""" % self.camp_id
             self._start_db()
 
-        if arguments.web:
-            print """restarting web server"""
-            self._restart_web()
-
-        if arguments.all:
-            print """stopping db on camp%d""" % self.camp_id
-            self._stop_db()
-            print """starting db on camp%d""" % self.camp_id
-            self._start_db()
+        if args.web or args.all: 
             print """restarting web server"""
             self._restart_web()
 
