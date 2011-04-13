@@ -1,6 +1,4 @@
-# magento hooks for pycamps
-# calls db_preconfig, db_postconfig, db_poststart 
-# and web_preconfig, web_postconfig, web_poststart
+# base hooks for pycamps
 
 class BaseHooks:
 
