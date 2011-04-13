@@ -77,11 +77,12 @@ class CampsDB:
 
     def get_camp_info(self, camp_id):
         c = self.conn.cursor()
-        info_sql = """SELECT project, path, owner, db_port, rcs_remote from camps where id = '%d'""" % int(camp_id)
+        info_sql = """SELECT * from camps where id = '%d'""" % int(camp_id)
         result = c.execute(info_sql)
-        proj, path, owner, db_port, rcs_remote = result.fetchone()
+        tmp_id, project, description, path, owner, rcs_remote, db_host, db_port, created, active = result.fetchone()
         c.close()
-        return {'proj': proj, 'path': path, 'owner': owner, 'db_port': db_port, 'rcs_remote': rcs_remote} 
+        return {'proj': project, 'desc': description, 'path': path, 'owner': owner,
+                'db_host': db_host, 'db_port': db_port, 'rcs_remote': rcs_remote, 'active': active}
 
     def get_owner(self, camp_id):
         return self.get_camp_info(camp_id)['owner']

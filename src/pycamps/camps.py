@@ -221,8 +221,76 @@ class Camps:
             else:
                 raise CampError("""Exiting on user request""")
 
+    def _print_status(self):
+
+        self.web = Web(self.project, self.camp_id)
+        self.db = DB(self.project, self.camp_id)
+
+        camp_info = self.campdb.get_camp_info(self.camp_id)
+        proj_info = self.projdb.get_project_info(self.project)
+        campname = settings.CAMPS_BASENAME + str(self.camp_id)
+
+        active = 'INACTIVE'
+        if camp_info['active']:
+            active = 'ACTIVE'
+
+        status_txt = """ --- %s ---\n\n""" % (campname)
+        status_txt += """    status:\t\t%s\n""" % active
+        status_txt += """    owner:\t\t%s\n""" % camp_info['owner']
+        status_txt += """    description:\t%s\n""" % camp_info['desc']
+        status_txt += """    location:\t\t%s\n\n""" % camp_info['path']
+        status_txt += """    project:\t\t%s\n""" % camp_info['proj']
+        status_txt += """    db master:\t\t%s\n""" % proj_info['db_lv']
+        status_txt += """    master repo:\t%s\n\n""" % proj_info['rcs_remote']
+        status_txt += """    camp repo:\t\t%s\n""" % camp_info['rcs_remote']
+        status_txt += """    ----------\n"""
+
+        self.web.set_ssh_client(rcs_remote=camp_info['rcs_remote'])
+        camp_sharing = self.web.get_camp_sharing()
+
+        if camp_sharing:
+            key, value = camp_sharing.popitem()
+            status_txt += """    shared with:\t%s %s\n""" % (value, key)
+        while camp_sharing:
+            key, value = camp_sharing.popitem()
+            status_txt += """\t\t\t%s %s\n""" % (value, key)
+
+        status_txt += """\n"""
+
+        # need to add commit stats and last commit here later
+
+        db_active = "DOWN"
+        if self.db.is_up():
+            db_active = "UP"
+
+        status_txt += """    db status:\t\t%s\n""" % db_active
+        status_txt += """    ----------\n"""
+        status_txt += """    db host:\t\t%s\n""" % camp_info['db_host']
+        status_txt += """    db port:\t\t%s\n""" % camp_info['db_port']
+
+        lv_info = self.projdb.get_lv_info(self.project)
+        db_location = "%s/%s" % (settings.DB_ROOT, campname)
+        db_usage = self.db.disk_usage(db_location)
+
+        status_txt += """    db location:\t%s\n""" % db_location
+        status_txt += """    db snap:\t\t/dev/%s/%s\n""" % (lv_info['vg'], campname)
+        if db_usage:
+            status_txt += """    db usage:\t\t%s total /%s used /%s available\n""" % (db_usage[0], db_usage[1], db_usage[2])
+
+        print status_txt
+
     def status(self, args):
-        raise CampError("""Not yet implemented, check back later""")
+
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        self.project = self.campdb.get_project(self.camp_id)
+
+        self._print_status()
 
     # push to shared camp
     def push(self, args):

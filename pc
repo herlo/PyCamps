@@ -115,7 +115,7 @@ def main():
 
     # push to a shared camp
     p_status = c_sp.add_parser('status', help='get status of camp')
-    p_status.add_argument('-i', '--id', metavar='id', type=int, help='camp id (if not in camp)')
+    p_status.add_argument('-i', '--id', metavar='id', type=int, help='camp id')
     p_status.set_defaults(func=camps.status)
 
     ########################
