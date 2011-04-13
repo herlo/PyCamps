@@ -46,6 +46,7 @@ log = /var/log/mysqld-%(camp_id)d.log"""
 DB_ROOT = '/var/lib/mysql'
 DB_USER = 'mysql'
 DB_GROUP = 'mysql'
+DB_SOCKET = 'mysql.sock'
 
 # web configs
 WEB_DELIVERY='VHOST' #other option is ALIAS
@@ -74,6 +75,8 @@ HTTPD_CONFIG_DIR='/etc/httpd/conf.d'
 
 # external hooks are important
 from pycamps.contrib.hooks.magento import MagentoHooks
-EXTERNAL_HOOKS = (
-    MagentoHooks,
-)
+from pycamps.contrib.hooks.wordpress import WPHooks
+EXTERNAL_HOOKS = {
+    'wordpress': WPHooks,
+    'community': MagentoHooks
+}
