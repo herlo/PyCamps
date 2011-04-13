@@ -107,6 +107,16 @@ class ProjectsDB():
         c.close()
 
     # getters and setters
+
+    def get_project_info(self, name):
+        c = self.conn.cursor()
+        info_sql = """SELECT * from projects where name = '%s'""" % name
+        result = c.execute(info_sql)
+        tmp_id, name, description, web_server, rcs_remote, db_server, db_lv, db_lv_snap_size, owner, created, active = result.fetchone()
+        c.close()
+        return {'proj': name, 'desc': description, 'owner': owner, 'db_server': db_server,
+                'db_lv': db_lv, 'db_snap_size': db_lv_snap_size, 'rcs_remote': rcs_remote, 'active': active}
+
     def get_remote(self, name):
         c = self.conn.cursor()
         r = c.execute("""select rcs_remote from projects where name = '%s'""" % name)

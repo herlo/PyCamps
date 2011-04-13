@@ -29,6 +29,9 @@ class Web:
     def set_camp_info(self, camp_info):
         self.camp_info = camp_info
 
+    def get_camp_info(self):
+        return self.camp_info
+
     def _get_camp_access(self, camp_name):
 
         stdin, stdout, stderr = self.sshclient.exec_command("""expand %s""" % camp_name)
@@ -64,7 +67,7 @@ class Web:
         stdout.close()
         stderr.close()
 
-    def _get_camp_sharing(self):
+    def get_camp_sharing(self):
 
         stdin, stdout, stderr = self.sshclient.exec_command("""getperms %s""" % self.rcs_remote)
 
@@ -74,7 +77,9 @@ class Web:
             perm, user = line.split(' ')
             self.perm_list[user] = perm
 
-    def _set_ssh_client(self, rcs_remote=None):
+        return self.perm_list
+
+    def set_ssh_client(self, rcs_remote=None):
 
         if not rcs_remote:
             self.host_info, self.rcs_remote = self.camp_info['rcs_remote'].split(':')
@@ -89,9 +94,9 @@ class Web:
 
     def unshare_camp(self, user):
 
-        self._set_ssh_client()
+        self.set_ssh_client()
 
-        self._get_camp_sharing()
+        self.get_camp_sharing()
 
         self._set_camp_sharing(user, None, True)
 
@@ -99,9 +104,9 @@ class Web:
 
     def share_camp(self, user, perms):
 
-        self._set_ssh_client()
+        self.set_ssh_client()
 
-        self._get_camp_sharing()
+        self.get_camp_sharing()
 
         self._set_camp_sharing(user, perms)
 
@@ -136,14 +141,19 @@ class Web:
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
 
-        self._set_ssh_client(rcs_remote)
+        self.set_ssh_client(rcs_remote)
         self._get_camp_access(shared_camp)
 
         if action == 'pull':
-            if not len(self.perm_list) or self.perm_list[0] != 'R':
+            if not self.perm_list:
                 raise CampError("""Update failed, READ access for %s DENIED to %s""" % (shared_camp, self.owner))
+            if not self.perm_list.count('R'):
+                raise CampError("""Update failed, READ access for %s DENIED to %s""" % (shared_camp, self.owner))
+
         if action == 'push':
-            if not len(self.perm_list) or self.perm_list[1] != 'W':
+            if not self.perm_list:
+                raise CampError("""Update failed, WRITE access for %s DENIED to %s""" % (shared_camp, self.owner))
+            if not self.perm_list.count('W'):
                 raise CampError("""Update failed, WRITE access for %s DENIED to %s""" % (shared_camp, self.owner))
 
         add_remote = True

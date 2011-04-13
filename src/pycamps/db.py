@@ -54,6 +54,21 @@ class DB:
         if db_config:
             self._add_db_config()
 
+    def is_up(self):
+        result = self.func.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % (settings.CAMPS_BASENAME + str(self.camp_id)))
+        if result[settings.FUNC_DB_HOST][0] != 0:
+            return False
+        return True
+
+    def disk_usage(self, db_location):
+        self.func.command.run("ls %s" % db_location)
+        result = self.func.command.run("/bin/df -h %s" % db_location)
+        if result[settings.FUNC_DB_HOST][0] != 0:
+            return None
+        res = str(result[settings.FUNC_DB_HOST][1].split('\n')[2])
+#        print "res: %s" % res
+        return res.strip().split('  ')[0:3]
+
     def start_db(self):
         result = self.func.command.run("/usr/bin/mysqld_multi start %d" % self.camp_id)
         time.sleep(5)
