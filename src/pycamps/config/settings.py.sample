@@ -29,7 +29,7 @@ FUNC_WEB_HOST = 'x201.egavas.org'
 # CHOOSE DB TYPE / Only MySQL is available atm
 
 DB = 'MySQL'
-DB_HOST = 'localhost'
+DB_HOST = """localhost"""
 DB_BASE_PORT = 3300
 
 # this is a python heredoc to generate the
@@ -40,13 +40,18 @@ socket = /var/lib/mysql/camp%(camp_id)d/mysql.sock
 pid-file = /var/run/mysqld/camp%(camp_id)d.pid
 user = mysql
 port = %(port)d
-log = /var/log/mysqld-%(camp_id)d.log"""
+log = %(camps_base)s/%(camps_basename)s%(camp_id)d/logs/mysqld-%(camp_id)d.log"""
 
 # location within where db master and clones will live
 DB_ROOT = '/var/lib/mysql'
 DB_USER = 'mysql'
 DB_GROUP = 'mysql'
 DB_SOCKET = 'mysql.sock'
+
+# set this to a valid password, if desired.
+# Setting this value, however, means that every db *must* have this same
+# password for root in the *entire* camps system.
+DB_ROOT_PASSWORD=None
 
 # web configs
 WEB_DELIVERY='VHOST' #other option is ALIAS
@@ -76,6 +81,7 @@ HTTPD_CONFIG_DIR='/etc/httpd/conf.d'
 # external hooks are important
 from pycamps.contrib.hooks.magento import MagentoHooks
 from pycamps.contrib.hooks.wordpress import WPHooks
+
 EXTERNAL_HOOKS = {
     'wordpress': WPHooks,
     'community': MagentoHooks

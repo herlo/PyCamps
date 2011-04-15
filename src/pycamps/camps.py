@@ -129,11 +129,7 @@ class Camps:
         # run app specific hooks for db
         self.db.hooks_prestop()
         
-        try:         
-            self.db.stop_db()
-        except CampError, e:
-            print e.value
-            pass
+        self.db.stop_db()
 
         self.db.hooks_poststop()
 
@@ -144,11 +140,7 @@ class Camps:
         # run app specific hooks for db
         self.db.hooks_prestart()
 
-        try:
-            self.db.start_db()
-        except CampError, e:
-            print e.value
-            pass
+        self.db.start_db()
 
         self.db.hooks_poststart()
 
