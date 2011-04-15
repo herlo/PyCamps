@@ -92,6 +92,7 @@ class Camps:
         self.web.hooks_preremove()
         # remove symlink for web config
         self.web.remove_symlink_config()
+        print """removed %s symlink""" % (settings.CAMPS_BASENAME + str(self.camp_id))
 
     def _restart_web(self):
 
@@ -441,34 +442,29 @@ class Camps:
         # clone db lv
         self._start_db()
 
-    def restart(self, arguments):
+    def restart(self, args):
 
-        if arguments.id:
-            self.camp_id = arguments.id
+        if not args.db and not args.web and not args.all:
+            args.all = True
+
+        if args.id:
+            self.camp_id = args.id
         else:
             self.camp_id = self._get_camp_id()
             if not self.camp_id:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
-        if arguments.db:
+        if args.db or args.all:
             print """stopping db on camp%d""" % self.camp_id
             self._stop_db()
             print """starting db on camp%d""" % self.camp_id
             self._start_db()
 
-        if arguments.web:
+        if args.web or args.all: 
             print """restarting web server"""
             self._restart_web()
 
-        if arguments.all:
-            print """stopping db on camp%d""" % self.camp_id
-            self._stop_db()
-            print """starting db on camp%d""" % self.camp_id
-            self._start_db()
-            print """restarting web server"""
-            self._restart_web()
-
-    def remove(self, arguments):
+    def remove(self, args):
         """Removes a camp directory and its corresponding db directory"""
 
         # ensure code in repo is pushed to remote camp
@@ -478,12 +474,19 @@ class Camps:
         # stop the database
         # remove sql directory
 
-        if arguments.id == None:
-            self.camp_id = self._get_camp_id()
-            if self.camp_id != None and arguments.force == None:
-                raise CampError("""A camp cannot be removed from within its own directory.""")
+        if args.id:
+            self.camp_id = args.id
+        else:
+            raise CampError("""A camp id must be provided.""")
 
-        self.camp_id = arguments.id
+        camp_id = self._get_camp_id()
+        if camp_id:
+            raise CampError("""A camp cannot be removed from within its own directory.""")
+
+        if not args.force:
+            self._validate_action("Remove will destroy any database changes for %s" % (self._get_campname()))
+
+        self.camp_id = args.id
         try:
             valid_user = False
             for admin in settings.ADMINS:
@@ -497,11 +500,11 @@ class Camps:
             if not valid_user:
                     raise CampError("""A camp can only be removed by its owner or an admin.""")
         except OSError, e:
-            if arguments.force == None:
+            if args.force == None:
                 raise CampError("""The camp directory %s/%s does not exist.""" % (settings.CAMPS_ROOT, self._get_campname()))
 
-        if arguments.Force == None:
-            self._confirm_remove(arguments)
+        if args.force == None:
+            self._confirm_remove(args)
 
         # remove web configs
         self._remove_web_config()
