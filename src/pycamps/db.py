@@ -83,7 +83,11 @@ class DB:
         print "camp%d database started" % self.camp_id
 
     def stop_db(self):
-        result = self.func.command.run("/usr/bin/mysqld_multi stop %s --password='%s'" % (self.camp_id, settings.DB_ROOT_PASSWORD))
+        command = """/usr/bin/mysqld_multi stop %s""" % str(self.camp_id)
+        if settings.DB_ROOT_PASSWORD:
+            command += """ --password='%s'""" % settings.DB_ROOT_PASSWORD
+
+        result = self.func.command.run(command)
         time.sleep(10)
         result = self.func.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % self.campname)
         if result[settings.FUNC_DB_HOST][0] != 1:
