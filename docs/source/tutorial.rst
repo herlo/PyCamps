@@ -231,17 +231,95 @@ In addition, restarting the web server can also be done very easily::
 
 Refresh a Camp
 ^^^^^^^^^^^^^^
-.. todo:: create/document refresh camp db and/or web server
+Refreshing a camp can be useful in at least two scenarios. Either the camp needs a new database snapshot, or the camp needs an update from the master repository. In many cases a camp may need both of these. A camp refresh can handle these updates::
+
+    $ pc camp refresh
+    Please provide one of the following [--db] [--web] [--all]
+
+    $ pc camp refresh --all
+    A refresh will destroy any database changes for camp106
+    Is this okay [y/N]: y
+    stopping db on camp106
+    camp106 database stopped
+    camp106 database unmounted
+    camp106 database logical volume removed
+    camp106 database snapshot complete
+    starting db on camp106
+    camp106 database started
+    A refresh may require manually merging code
+    Is this okay [y/N]: y
+    refreshing the code base from the community master repository
+    camp106 code base refreshed
+
+.. note:: A refresh with the :option:`--db` or :option:`--all` option will completely replace the existing database with a fresh snapshot. Databases do not have revision control as code does, thus a refresh is destructive. Migrations of the database are the responsibility of the camp owner.
 
 Camp Sharing
 ^^^^^^^^^^^^
-.. todo:: share - give permission to clone a camp
-.. todo::    unshare             remove permission to clone a camp
-.. todo::    clone               clone a shared camp
+Sometimes sharing code between camps can be especially painful. If the two camps are in different home directories, copying code back and forth is painful. In addition, copying code around is really bad form. Instead, take the time to share a camp with another user, this will allow the other user to pull the shared camp into and properly merge the camp using revision control. Sharing can be done the other way so both camps can push to and pull from the other collaborative camp::
 
-Camp Revision Control
-^^^^^^^^^^^^^^^^^^^^^
-.. todo::    track               tracked files/dirs
-.. todo::    untrack             before commit, untrack files
-.. todo::    commit              commit tracked files
-.. todo::    log                 show commit log
+    $ pc camp share kynalya R
+    Sharing camp106 with R permissions for kynalya
+    camp106 is now shared with R permissions for kynalya
+
+The :command:`status` command provides information regarding the shared camp::
+
+    $ pc camp status
+     --- camp106 ---
+
+        status:		ACTIVE
+        owner:		clints
+        description:	testing db hooks
+        location:		/home/clints/camps/camp106
+
+        project:		community
+        db master:		/dev/db/community
+        master repo:	gitolite@git.example.com:community/master
+
+        camp repo:		gitolite@git.example.com:community/camp106
+        ----------
+        shared with:	R kynalya
+
+        db status:		UP
+        ----------
+        db host:		localhost
+        db port:		3406
+        db location:	/var/lib/mysql/camp106
+        db snap:		/dev/db/camp106
+        db usage:		97M total / 27M used / 66M available
+
+Pulling in code is now simple, just make sure to be inside the desired camp::
+
+    [camp108]$ pc camp pull 106
+    Pulling from a shared camp may require manually merging code
+    Is this okay [y/N]: y
+    pulling in code from shared camp106
+    pull from camp106 complete
+
+.. warning:: When performing a pull into a camp, both the shared and destination camps **must** use the same project.
+.. note:: It is possible to pull in one's own camp using this command, since an owner of a camp automatically shares all camps.
+
+It may also be desirable to push changes back to the shared camp::
+
+    [camp108]$ pc camp push 106
+    Pushing to shared repo, camp106
+    Is this okay [y/N]: y
+    pushing code to shared camp106
+    push to camp106 complete
+
+Read-write access (RW) must be granted to the user attempting the push. If read-write access is not granted to the user, an error will occur and the push will fail::
+
+    [camp108]$ pc camp push 106
+    Pushing to shared repo, camp106
+    Is this okay [y/N]: y
+    pushing code to shared camp106
+    Update failed, WRITE access for camp106 DENIED to kynalya
+
+Of course, when things settle down a little, it's possible the camp no longer
+needs to be shared::
+
+    $ pc camp unshare kynalya
+    Removing shared access to camp106 for kynalya
+    Is this okay [y/N]: y
+    Sharing for user 'kynalya' has been removed from camp106
+
+.. note:: Unsharing a camp is technically a destructive process and therefore requires confirmation.

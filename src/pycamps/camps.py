@@ -311,7 +311,7 @@ class Camps:
                 raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
         if not args.force:
-            self._validate_action("Pushing to shared repo for %s" % self._get_campname())
+            self._validate_action("Pushing to shared repo, %s" % (settings.CAMPS_BASENAME + str(args.shared_camp_id)))
 
         self._push_shared_camp(args.shared_camp_id)
         print """push to %s complete""" % (settings.CAMPS_BASENAME + str(args.shared_camp_id))
