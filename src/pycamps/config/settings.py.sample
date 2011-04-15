@@ -29,7 +29,7 @@ FUNC_WEB_HOST = 'x201.egavas.org'
 # CHOOSE DB TYPE / Only MySQL is available atm
 
 DB = 'MySQL'
-DB_HOST = 'localhost'
+DB_HOST = """localhost"""
 DB_BASE_PORT = 3300
 
 # this is a python heredoc to generate the
@@ -40,10 +40,11 @@ socket = /var/lib/mysql/camp%(camp_id)d/mysql.sock
 pid-file = /var/run/mysqld/camp%(camp_id)d.pid
 user = mysql
 port = %(port)d
-log = /var/log/mysqld-%(camp_id)d.log"""
+log = %(camps_base)s/%(camps_basename)s%(camp_id)d/logs/mysqld-%(camp_id)d.log"""
 
 # location within where db master and clones will live
 DB_ROOT = '/var/lib/mysql'
+DB_ROOT_PASSWORD=''
 DB_USER = 'mysql'
 DB_GROUP = 'mysql'
 DB_SOCKET = 'mysql.sock'
