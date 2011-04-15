@@ -33,7 +33,6 @@ class WPHooks:
                                 db = proj)
         cursor = conn.cursor ()
         sql = "update wp_options set option_value='http://%s.example.com' where option_value like 'http://%s%%';" % ( campname, settings.CAMPS_BASENAME ) 
-#        print "SQL: %s" % sql
         cursor.execute( sql )
         cursor.close ()
         conn.close ()

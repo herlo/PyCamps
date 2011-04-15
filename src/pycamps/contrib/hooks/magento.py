@@ -15,7 +15,6 @@ class MagentoHooks(BaseHooks):
 
     @classmethod
     def db_poststart(self, settings, proj, camp_id):
-        print "magento db_poststart"
         pass
 
     @classmethod
