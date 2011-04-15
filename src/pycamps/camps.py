@@ -272,6 +272,21 @@ class Camps:
 
         print status_txt
 
+    def db_shell(self, args):
+
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
+
+        self.project = self.campdb.get_project(self.camp_id)
+        self.db = DB(self.project, self.camp_id)
+        self.db.set_camp_info(self.campdb.get_camp_info(self.camp_id))
+
+        self.db.db_shell()
+
     def status(self, args):
 
         if args.id:
