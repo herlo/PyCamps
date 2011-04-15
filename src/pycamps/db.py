@@ -17,6 +17,11 @@ class DB:
         self.campname = (settings.CAMPS_BASENAME + str(self.camp_id))
         self.project = project
 
+        if project in settings.EXTERNAL_HOOKS:
+            self.hook = settings.EXTERNAL_HOOKS[project]
+        else:
+            self.hook = None
+
     def set_camp_info(self, camp_info):
         self.camp_info = camp_info
 
@@ -41,7 +46,7 @@ class DB:
         self.func.command.run(chown_cmd)
 
     def _add_db_config(self):
-        mysql_config = "echo '\n%s\n' >> /etc/my.cnf" % (settings.DB_CONFIG % {'camp_id': self.camp_id, 'port': (settings.DB_BASE_PORT + self.camp_id)})
+        mysql_config = "echo '\n%s\n' >> /etc/my.cnf" % (settings.DB_CONFIG % {'camps_base': settings.CAMPS_ROOT, 'camps_basename': settings.CAMPS_BASENAME, 'camp_id': self.camp_id, 'port': (settings.DB_BASE_PORT + self.camp_id)})
         self.func.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
 
@@ -78,7 +83,7 @@ class DB:
         print "camp%d database started" % self.camp_id
 
     def stop_db(self):
-        result = self.func.command.run("/usr/bin/mysqld_multi stop %s" % self.camp_id)
+        result = self.func.command.run("/usr/bin/mysqld_multi stop %s --password='%s'" % (self.camp_id, settings.DB_ROOT_PASSWORD))
         time.sleep(10)
         result = self.func.command.run("(/bin/ps -ef | /bin/grep mysql | /bin/grep %s | /bin/grep -v grep)" % self.campname)
         if result[settings.FUNC_DB_HOST][0] != 1:
@@ -112,33 +117,33 @@ class DB:
     # lots of hooks to handle extra functionality per application
 
     def hooks_preconfig(self):
-        for preconfig in settings.EXTERNAL_HOOKS:
-            preconfig.db_preconfig(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_preconfig(settings, self.project, self.camp_id)
 
     def hooks_postconfig(self):
-        for postconfig in settings.EXTERNAL_HOOKS:
-            postconfig.db_postconfig(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_postconfig(settings, self.project, self.camp_id)
 
     def hooks_prestart(self):
-        for prestart in settings.EXTERNAL_HOOKS:
-            prestart.db_prestart(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_prestart(settings, self.project, self.camp_id)
 
     def hooks_poststart(self):
-        for poststart in settings.EXTERNAL_HOOKS:
-            poststart.db_poststart(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_poststart(settings, self.project, self.camp_id)
 
     def hooks_prestop(self):
-        for prestop in settings.EXTERNAL_HOOKS:
-            prestop.db_prestop(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_prestop(settings, self.project, self.camp_id)
 
     def hooks_poststop(self):
-        for poststop in settings.EXTERNAL_HOOKS:
-            poststop.db_poststop(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_poststop(settings, self.project, self.camp_id)
 
     def hooks_preremove(self):
-        for preremove in settings.EXTERNAL_HOOKS:
-            preremove.db_preremove(settings, self.project, self.camp_id)
+         if self.hook:
+            self.hook.db_preremove(settings, self.project, self.camp_id)
 
     def hooks_postremove(self):
-        for postremove in settings.EXTERNAL_HOOKS:
-            postremove.db_postremove(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.db_postremove(settings, self.project, self.camp_id)

@@ -26,6 +26,11 @@ class Web:
         self.campname = settings.CAMPS_BASENAME + str(self.camp_id)
         self.project = project
 
+        if project in settings.EXTERNAL_HOOKS:
+            self.hook = settings.EXTERNAL_HOOKS[project]
+        else:
+            self.hook = None
+
     def set_camp_info(self, camp_info):
         self.camp_info = camp_info
 
@@ -277,6 +282,8 @@ class Web:
 
         except NoSuchPathError, e:
             pass
+        except AttributeError, e:
+            pass
 
     def remove_camp(self):
         self.camppath = self.camp_info['path']
@@ -284,7 +291,9 @@ class Web:
         rm_camp_command = """/bin/rm -rf %s""" % self.camppath
         result = self.func.command.run(rm_camp_command)
         if result[settings.FUNC_WEB_HOST][0] != 0:
-            print """Unable to remove camp%d, this is not a fatal error.  Please remove '%s' manually.""" % (self.camp_id, self.camppath)
+            print """Unable to remove %s, this is not a fatal error.  Please remove '%s' manually.""" % (self.campname, self.camppath)
+        else:
+            print """'%s' succesfully removed.""" % (self.camppath)
 
     def restart_web(self):
         # restart the web service
@@ -293,38 +302,36 @@ class Web:
         time.sleep(5)
         result = self.func.command.run("(/bin/ps -ef | /bin/grep httpd | /bin/grep -v grep)")
         if result[settings.FUNC_WEB_HOST][0] != 0:
-            raise CampError("""Unable to start web server for camp%d, contact an admin\n""" % (self.camp_id))
-
-        print """camp%d web server restarted""" % (self.camp_id)
+            raise CampError("""Unable to start web server for %s, contact an admin\n""" % self.campname)
 
     def hooks_preconfig(self):
-        for preconfig in settings.EXTERNAL_HOOKS:
-            preconfig.web_preconfig(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_preconfig(settings, self.project, self.camp_id)
 
     def hooks_postconfig(self):
-        for postconfig in settings.EXTERNAL_HOOKS:
-            postconfig.web_postconfig(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_postconfig(settings, self.project, self.camp_id)
 
     def hooks_prestart(self):
-        for prestart in settings.EXTERNAL_HOOKS:
-            prestart.web_prestart(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_prestart(settings, self.project, self.camp_id)
 
     def hooks_poststart(self):
-        for poststart in settings.EXTERNAL_HOOKS:
-            poststart.web_poststart(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_poststart(settings, self.project, self.camp_id)
 
     def hooks_prestop(self):
-        for prestop in settings.EXTERNAL_HOOKS:
-            prestop.web_prestop(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_postconfig(settings, self.project, self.camp_id)
 
     def hooks_poststop(self):
-        for poststop in settings.EXTERNAL_HOOKS:
-            poststop.web_poststop(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_poststop(settings, self.project, self.camp_id)
 
     def hooks_preremove(self):
-        for preremove in settings.EXTERNAL_HOOKS:
-            preremove.web_preremove(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_preremove(settings, self.project, self.camp_id)
 
     def hooks_postremove(self):
-        for postremove in settings.EXTERNAL_HOOKS:
-            postremove.web_postremove(settings, self.project, self.camp_id)
+        if self.hook:
+            self.hook.web_postremove(settings, self.project, self.camp_id)
