@@ -19,7 +19,6 @@ except CampError, e:
     print e.value
     sys.exit(1)
 
-
 def main():
 
     p = argparse.ArgumentParser(
@@ -117,6 +116,11 @@ def main():
     p_status = c_sp.add_parser('status', help='get status of camp')
     p_status.add_argument('-i', '--id', metavar='id', type=int, help='camp id')
     p_status.set_defaults(func=camps.status)
+
+    # access the db on a shared camp
+    p_dbshell = c_sp.add_parser('db', help='interactive shell for camp database')
+    p_dbshell.add_argument('-i', '--id', metavar='id', type=int, help='camp id')
+    p_dbshell.set_defaults(func=camps.db_shell)
 
     ########################
     # project stuff        #

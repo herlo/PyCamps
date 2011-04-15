@@ -28,7 +28,7 @@ FUNC_WEB_HOST = 'x201.egavas.org'
 
 # CHOOSE DB TYPE / Only MySQL is available atm
 
-DB = 'MySQL'
+DB='MySQL'
 DB_HOST = """localhost"""
 DB_BASE_PORT = 3300
 

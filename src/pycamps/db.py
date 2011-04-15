@@ -50,6 +50,14 @@ class DB:
         self.func.command.run(mysql_config)
         print "camp%d database configured" % self.camp_id
 
+    def db_shell(self):
+
+        command = """/usr/bin/mysql"""
+        args = ["""--no-auto-rehash""", """--user=root""", """--port=%d""" % int(settings.DB_BASE_PORT + self.camp_id), """--socket=%s/%s/%s""" % (settings.DB_ROOT, self.campname, settings.DB_SOCKET)]
+        if settings.DB_ROOT_PASSWORD:
+            args.append("""--password=%s""" % settings.DB_ROOT_PASSWORD)
+        os.execvp(command, args)
+
     def clone_db(self, lv_infos, db_config=True):
         """Clones the campmaster db into a particular camp db
         and adds appropriate configs into the database itself"""
