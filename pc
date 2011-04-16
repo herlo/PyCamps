@@ -25,12 +25,13 @@ def main():
     p = argparse.ArgumentParser(
             description='''Dispatches commands to 
             manage development project data''',
+            version="%s version %s" %(prog, ver),
         )
     
     #################
     # general stuff #
     #################
-    p.add_argument('-v', '--version', action='version', version="%s version %s" %(prog, ver))
+#    p.add_argument('-v', '--version', action='version', version="%s version %s" %(prog, ver))
 
     sp = p.add_subparsers()
 
