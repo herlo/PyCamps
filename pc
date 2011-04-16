@@ -5,6 +5,7 @@ import time
 import argparse
 
 from pycamps import camps as c, projects as p
+from pycamps import __prog__ as prog, __version__ as ver
 from pycamps.campserror import *
 
 # the order of these being instantiated is important
@@ -26,18 +27,20 @@ def main():
             manage development project data''',
         )
     
-    sp = p.add_subparsers()
-    
     #################
     # general stuff #
     #################
+    p.add_argument('-v', '--version', action='version', version="%s version %s" %(prog, ver))
+
+    sp = p.add_subparsers()
+
     cp = sp.add_parser('camp', help='camp management')
     c_sp = cp.add_subparsers()
-    
+
     # init a camp
     p_init = c_sp.add_parser('init', help='initialize (create) a camp')
     p_init.add_argument('proj', help='name of project to import')
-    p_init.add_argument('-d', '--desc', help="purpose of camp")
+    p_init.add_argument('-d', '--desc', metavar='desc', help="purpose of camp")
     p_init.set_defaults(func=camps.create)
     
     # list camps
