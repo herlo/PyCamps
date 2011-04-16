@@ -78,8 +78,8 @@ class DB:
         result = self.func.command.run("/bin/df -h %s" % db_location)
         if result[settings.FUNC_DB_HOST][0] != 0:
             return None
-        res = str(result[settings.FUNC_DB_HOST][1].split('\n')[2])
-#        print "res: %s" % res
+        res = str(result[settings.FUNC_DB_HOST][1].split('\n')[1])
+        print "res: %s" % res
         return res.strip().split('  ')[0:3]
 
     def start_db(self):
