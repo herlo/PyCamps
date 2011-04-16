@@ -75,12 +75,16 @@ class DB:
 
     def disk_usage(self, db_location):
         self.func.command.run("ls %s" % db_location)
-        result = self.func.command.run("/bin/df -h %s" % db_location)
+        result = self.func.command.run("/bin/df -P -h %s" % db_location)
         if result[settings.FUNC_DB_HOST][0] != 0:
             return None
-        res = str(result[settings.FUNC_DB_HOST][1].split('\n')[1])
+
+        r = result[settings.FUNC_DB_HOST][1]
+        res = str(r).split('\n')[1]
         print "res: %s" % res
-        return res.strip().split('  ')[0:3]
+        r = res.strip().split('  ')[:-1]
+
+        return r[-3:]
 
     def start_db(self):
         result = self.func.command.run("/usr/bin/mysqld_multi start %d" % self.camp_id)
