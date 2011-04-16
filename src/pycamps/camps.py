@@ -268,7 +268,7 @@ class Camps:
         status_txt += """    db location:\t%s\n""" % db_location
         status_txt += """    db snap:\t\t/dev/%s/%s\n""" % (lv_info['vg'], campname)
         if db_usage:
-            status_txt += """    db usage:\t       %s total /%s used /%s available\n""" % (db_usage[0], db_usage[1], db_usage[2])
+            status_txt += """    db usage:\t\t%s total / %s used / %s available\n""" % (db_usage[0].strip(), db_usage[1].strip(), db_usage[2].strip())
 
         print status_txt
 
