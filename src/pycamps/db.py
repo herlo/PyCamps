@@ -81,7 +81,7 @@ class DB:
 
         r = result[settings.FUNC_DB_HOST][1]
         res = str(r).split('\n')[1]
-        print "res: %s" % res
+        #print "res: %s" % res
         r = res.strip().split('  ')[:-1]
 
         return r[-3:]
