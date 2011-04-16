@@ -5,8 +5,7 @@ import os
 from distutils.core import setup
 from distutils.sysconfig import get_python_lib
 
-import src.pycamps.__version__
-import src.pycamps.__prog__
+from src.pycamps import __version__, __prog__
 
 pkgs_path = get_python_lib()
 app_name = 'pycamps'
