@@ -25,6 +25,7 @@ TESTREPO_PATH = '/tmp/testrepo'
 # func settings
 FUNC_DB_HOST = 'x201.egavas.org'
 FUNC_WEB_HOST = 'x201.egavas.org'
+FUNC_LVM_PATH = '/sbin'
 
 # CHOOSE DB TYPE / Only MySQL is available atm
 

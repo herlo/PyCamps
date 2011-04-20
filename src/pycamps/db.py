@@ -29,8 +29,11 @@ class DB:
         """Clones the campmaster db into a particular camp db 
         using logical volume snapshots"""
         
-        lv_snapshot_cmd = "/sbin/lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (lv_infos['snap'], settings.CAMPS_BASENAME + str(self.camp_id), lv_infos['vg'], lv_infos['lv'])
-        self.func.command.run(lv_snapshot_cmd)
+        lv_snapshot_cmd = "/usr/sbin/lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (lv_infos['snap'], settings.CAMPS_BASENAME + str(self.camp_id), lv_infos['vg'], lv_infos['lv'])
+	#print "LV SNAPSHOT CMD: %s" % lv_snapshot_cmd
+        result = self.func.command.run(lv_snapshot_cmd)
+
+	#print "LV SNAPSHOT result: %s" % str(result)
         print "camp%d database snapshot complete" % self.camp_id
 
     def _clone_db_rsync(self):
@@ -81,7 +84,6 @@ class DB:
 
         r = result[settings.FUNC_DB_HOST][1]
         res = str(r).split('\n')[1]
-        #print "res: %s" % res
         r = res.strip().split('  ')[:-1]
 
         return r[-3:]
@@ -123,9 +125,9 @@ class DB:
         # remove the copy-on-write for the device mapped device
         self.func.command.run("dmsetup remove /dev/mapper/%s-%s-cow" % (lv_infos['vg'], self.campname))
         # remove the logical volume
-        result = self.func.command.run("/sbin/lvremove -f /dev/mapper/%s-%s" % (lv_infos['vg'], self.campname))
+        result = self.func.command.run("%s/lvremove -f /dev/mapper/%s-%s" % (settings.FUNC_LVM_PATH, lv_infos['vg'], self.campname))
         time.sleep(5)
-        result = self.func.command.run("/bin/lvs | grep %s" % self.campname)
+        result = self.func.command.run("%s/lvs | grep %s" % (settings.FUNC_LVM_PATH, self.campname))
         if result[settings.FUNC_DB_HOST][0] != 1:
             raise CampError("""Unable to remove db for camp%s, contact an admin\n""" % self.camp_id)
         print "camp%d database logical volume removed" % self.camp_id
