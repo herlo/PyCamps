@@ -388,8 +388,14 @@ class Camps:
         if not args.db and not args.web and not args.all:
             raise CampError("""Please provide one of the following [--db] [--web] [--all]""")
 
-        if args.db or args.all:
+        if args.id:
+            self.camp_id = args.id
+        else:
+            self.camp_id = self._get_camp_id()
+            if not self.camp_id:
+                raise CampError("""Please provide the camp id with --id option or move to the camp home.""")
 
+        if args.db or args.all:
             if not args.force:
                 self._validate_action("A refresh will destroy any database changes for %s" % (self._get_campname()))
 
