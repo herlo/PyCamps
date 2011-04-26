@@ -42,12 +42,32 @@ class Web:
         stdin, stdout, stderr = self.sshclient.exec_command("""expand %s""" % camp_name)
 
         self.perm_list = []
-        for line in stdout.read().splitlines()[2:]:
-            self.perm_list = line.split('\t')[0].strip().split('  ')
+        line = stdout.read().splitlines()[-1:]
+        perms = line[0].split('\t')[0]
+        for p in perms.split('  '):
+            if len(p):
+                self.perm_list.append(p.strip())
 
         stdin.close()
         stdout.close()
         stderr.close()
+
+#    def _get_camp_access(self, camp_name):
+#
+#        stdin, stdout, stderr = self.sshclient.exec_command("""expand %s""" % camp_name)
+#
+#        self.perm_list = []
+#        for line in stdout.read().splitlines()[-1:]:
+#            print "line: %s" % line
+#            perms = line.split('\t')[0].strip()
+#            print "perms: %s" % str(perms)
+#            for p in perms.split('  '):
+#                self.perm_list.append(p.strip())
+#
+#
+#        stdin.close()
+#        stdout.close()
+#        stderr.close()
 
     def _set_camp_sharing(self, user, perm, remove=False):
 
