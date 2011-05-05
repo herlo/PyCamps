@@ -1,6 +1,17 @@
 settings.py
+MANIFEST
 .*.sw*
 *.bak
 *.orig
 *camp*.db
 *.pyc
+build
+dist
+docs/*.vym
+docs/*.png
+docs/*.svg
+docs/*.odp
+docs/*.pdf
+docs/*.ps
+
+pycamps.egg-info

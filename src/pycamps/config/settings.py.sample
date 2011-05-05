@@ -1,0 +1,89 @@
+# PyCamps configurations loader
+import os
+
+# pycamps administrator (likely you)
+ADMINS = (
+    ('Andrew Spencer','ags', 'ags.github@trucemail.com'),
+    ('Clint Savage', 'clints', 'clint@purpleatom.com'),
+)
+
+# the root location of all camps
+
+CAMPS_ROOT = '%s/camps' % (os.environ['HOME'])
+
+# the dir where the camp will be stored within the 
+# user's home directory camp will be turned into 
+# /home/user/camp4 for the 4th camp.
+
+CAMPS_BASENAME = 'camp'
+
+# the path to the PyCamps sqlite db.  Used for tracking pertinent info like camp#, description, etc.
+CAMPS_DB = '/tmp/testrepo/camps.db'
+
+TESTREPO_PATH = '/tmp/testrepo'
+
+# func settings
+FUNC_DB_HOST = 'x201.egavas.org'
+FUNC_WEB_HOST = 'x201.egavas.org'
+FUNC_LVM_PATH = '/sbin'
+
+# CHOOSE DB TYPE / Only MySQL is available atm
+
+DB='MySQL'
+DB_HOST = """localhost"""
+DB_BASE_PORT = 3300
+
+# this is a python heredoc to generate the
+# mysql config entries for each db
+DB_CONFIG = """[mysqld%(camp_id)d]
+datadir = /var/lib/mysql/camp%(camp_id)d
+socket = /var/lib/mysql/camp%(camp_id)d/mysql.sock
+pid-file = /var/run/mysqld/camp%(camp_id)d.pid
+user = mysql
+port = %(port)d
+log = %(camps_base)s/%(camps_basename)s%(camp_id)d/logs/mysqld-%(camp_id)d.log"""
+
+# location within where db master and clones will live
+DB_ROOT = '/var/lib/mysql'
+DB_USER = 'mysql'
+DB_GROUP = 'mysql'
+DB_SOCKET = 'mysql.sock'
+
+# set this to a valid password, if desired.
+# Setting this value, however, means that every db *must* have this same
+# password for root in the *entire* camps system.
+DB_ROOT_PASSWORD=None
+
+# web configs
+WEB_DELIVERY='VHOST' #other option is ALIAS
+
+# this is a python heredoc to generate the
+# web config entries for each vhost
+VHOST_CONFIG = """<VirtualHost *:80>
+    ServerAdmin webmaster@camp%(camp_id)d.example.com
+    DocumentRoot %(camppath)s/
+    ServerName camp%(camp_id)d.example.com
+    ServerAlias camp%(camp_id)d
+    ErrorLog %(camppath)s/logs/camp%(camp_id)d-error_log
+    CustomLog %(camppath)s/logs/camp%(camp_id)d-access_log common
+</VirtualHost>
+"""
+
+WEB_CONFIG_BASE='httpd/conf.d'
+WEB_CONFIG_FILE='site.conf'
+WEB_DOCROOT='shop'
+WEB_LOG_DIR='logs'
+# all developers need to be in this group
+# the httpd process needs to as well
+WEB_GROUP='apache'
+
+HTTPD_CONFIG_DIR='/etc/httpd/conf.d'
+
+# external hooks are important
+from pycamps.contrib.hooks.magento import MagentoHooks
+from pycamps.contrib.hooks.wordpress import WPHooks
+
+EXTERNAL_HOOKS = {
+    'wordpress': WPHooks,
+    'community': MagentoHooks
+}
