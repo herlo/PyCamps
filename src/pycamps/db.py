@@ -30,10 +30,10 @@ class DB:
         using logical volume snapshots"""
         
         lv_snapshot_cmd = "/usr/sbin/lvcreate -L %s -s -p rw -n %s /dev/%s/%s" % (lv_infos['snap'], settings.CAMPS_BASENAME + str(self.camp_id), lv_infos['vg'], lv_infos['lv'])
-	#print "LV SNAPSHOT CMD: %s" % lv_snapshot_cmd
+	    #print "LV SNAPSHOT CMD: %s" % lv_snapshot_cmd
         result = self.func.command.run(lv_snapshot_cmd)
 
-	#print "LV SNAPSHOT result: %s" % str(result)
+	    #print "LV SNAPSHOT result: %s" % str(result)
         print "camp%d database snapshot complete" % self.camp_id
 
     def _clone_db_rsync(self):
