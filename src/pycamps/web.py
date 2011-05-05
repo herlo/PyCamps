@@ -52,23 +52,6 @@ class Web:
         stdout.close()
         stderr.close()
 
-#    def _get_camp_access(self, camp_name):
-#
-#        stdin, stdout, stderr = self.sshclient.exec_command("""expand %s""" % camp_name)
-#
-#        self.perm_list = []
-#        for line in stdout.read().splitlines()[-1:]:
-#            print "line: %s" % line
-#            perms = line.split('\t')[0].strip()
-#            print "perms: %s" % str(perms)
-#            for p in perms.split('  '):
-#                self.perm_list.append(p.strip())
-#
-#
-#        stdin.close()
-#        stdout.close()
-#        stderr.close()
-
     def _set_camp_sharing(self, user, perm, remove=False):
 
         stdin, stdout, stderr = self.sshclient.exec_command("""setperms %s""" % self.rcs_remote)
@@ -154,20 +137,6 @@ class Web:
                 raise CampError("""Update failed with error: %s""" % e)
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
-
-#    def pull_from_master(self, force=False):
-#        
-#        self.camppath = self.camp_info['path']
-#
-#        try:
-#            repo = git.Repo(self.camppath)
-#            if repo.is_dirty() and not force:
-#                raise CampError("""Please commit/stash uncommitted code, or use -f/--force option at your own risk""")
-#            repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
-#        except AssertionError, e:
-#            raise CampError("""Update failed with error: %s""" % e)
-#        except IndexError, e:
-#            raise CampError("""Update failed with error: %s""" % e)
 
     def push_or_pull_shared_camp(self, shared_camp, rcs_remote, action):
 
