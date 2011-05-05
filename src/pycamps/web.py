@@ -127,9 +127,27 @@ class Web:
                 raise CampError("""Please commit/stash uncommitted code, or use -f/--force option at your own risk""")
             repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
         except AssertionError, e:
-            raise CampError("""Update failed with error: %s""" % e)
+            # GitPython has a nasty assert bug here that we have to try again if it rears its head.
+            try:
+                repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
+            except AssertionError, e:
+                raise CampError("""Update failed with error: %s""" % e)
         except IndexError, e:
             raise CampError("""Update failed with error: %s""" % e)
+
+#    def pull_from_master(self, force=False):
+#        
+#        self.camppath = self.camp_info['path']
+#
+#        try:
+#            repo = git.Repo(self.camppath)
+#            if repo.is_dirty() and not force:
+#                raise CampError("""Please commit/stash uncommitted code, or use -f/--force option at your own risk""")
+#            repo.remotes[self.project].pull('refs/heads/master:refs/heads/master')
+#        except AssertionError, e:
+#            raise CampError("""Update failed with error: %s""" % e)
+#        except IndexError, e:
+#            raise CampError("""Update failed with error: %s""" % e)
 
     def push_or_pull_shared_camp(self, shared_camp, rcs_remote, action):
 
